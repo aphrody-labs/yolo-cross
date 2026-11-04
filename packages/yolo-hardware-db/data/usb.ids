@@ -1,0 +1,45 @@
+#
+#	List of USB ID's
+#
+#	Maintained by Stephen J. Gowdy <artemis@gnome-hacker.org>
+#	If you have any new entries, please submit them via
+#		http://www.linux-usb.org/usb-ids.html
+#	or send entries as a diff to linux-usb@vger.kernel.org.
+#
+
+# Syntax:
+# vendor  vendor_name
+#	device  device_name				<-- single tab
+#		interface  interface_name		<-- two tabs
+
+045e  Microsoft Corp.
+	028e  Xbox360 Controller
+	02d1  Xbox One Controller
+	0b12  Xbox Wireless Controller (Model 1914)
+	07a5  Wireless Receiver 1461
+	0779  LifeCam HD-3000
+
+046d  Logitech, Inc.
+	c52b  Unifying Receiver
+	c539  Lightspeed Wireless Gaming Receiver
+	c08b  G502 HERO Gaming Mouse
+	c084  G203 Prodigy Gaming Mouse
+	085e  Logitech BRIO 4K Webcam
+
+054c  Sony Corp.
+	0ce6  DualSense Wireless Controller (PS5)
+	05c4  DualShock 4 [CUH-ZCT1x]
+	09cc  DualShock 4 [CUH-ZCT2x]
+
+05ac  Apple, Inc.
+	0267  Magic Keyboard with Numeric Keypad
+	0269  Magic Trackpad 2
+	12a8  iPhone5/5C/5S/6/SE/7/8/X/11/12/13/14/15/16
+
+1532  Razer USA, Ltd
+	0078  Viper Ultimate Wireless Receiver
+	0084  DeathAdder V2 Pro Wireless
+
+0b05  ASUSTek Computer, Inc.
+	19af  AURA LED Controller
+	184c  ROG Cetra True Wireless

@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: Apache-2.0
+# Canonical Steam owner of Bun OS: VDF (text and binary), Steam install discovery and client
+# configuration, Proton launch tuning, Remote Play state, and (opt-in features) the native depot
+# client absorbed from bun-re and the in-process Steamworks emulator.
+[package]
+name = "bun-steam"
+version = "1.4.7"
+edition = "2024"
+rust-version = "1.97"
+authors = ["aphrody-dev <contact@aphrody.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/aphrody-labs/bun-os"
+description = "Bun OS Steam owner: VDF text/binary parser and writer, install and library discovery, client configuration, Proton launch tuning, Remote Play state and the native depot client."
+
+[lib]
+name = "bun_steam"
+
+
+[features]
+default = []
+# Native Steam depot client (steamroom CM session, PICS, CDN download) and `bun-steam-depot`.
+depot = [
+    "dep:anyhow",
+    "dep:bytes",
+    "dep:clap",
+    "dep:dirs-next",
+    "dep:hex",
+    "dep:steamroom",
+    "dep:steamroom-client",
+    "dep:tokio",
+    "dep:tracing",
+    "dep:tracing-subscriber",
+    "dep:zip",
+]
+# In-process Steamworks API emulator over the nie netcode types.
+emulator = []
+
+[dependencies]
+serde = { version = "1.0.228" }
+serde_json = "1.0.151"
+thiserror = "2.0.20"
+crc32fast = { version = "1.5", features = ["std"] }
+anyhow = { version = "1.0.104", optional = true, features = ["std"] }
+bytes = { version = "1.11.1", optional = true }
+clap = { version = "4.6.6", optional = true, features = ["derive", "color", "env"] }
+dirs-next = { version = "2.0.0", optional = true }
+hex = { version = "0.4", optional = true }
+steamroom = { version = "0.2", optional = true }
+steamroom-client = { version = "0.2", optional = true }
+tokio = { version = "1.53.1", optional = true, features = ["rt-multi-thread", "macros", "fs", "sync", "time"] }
+tracing = { version = "0.1.44", optional = true }
+tracing-subscriber = { version = "0.3.20", default-features = false, features = ["fmt", "env-filter", "ansi", "tracing-log"], optional = true }
+zip = { version = "7.2.0", optional = true, features = ["aes-crypto", "bzip2", "deflate64", "lzma", "time", "zstd", "xz"] }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_System_Registry"] }
+
+[dev-dependencies]
+tempfile = "=3.25.0"
+
+[[bin]]
+name = "bun-steam-depot"
+path = "src/bin/bun-steam-depot.rs"
+required-features = ["depot"]

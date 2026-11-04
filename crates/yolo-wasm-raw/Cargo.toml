@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT
+[package]
+name = "yolo-wasm-raw"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "Small wasm32 fixture without wasm-bindgen for the raw WebAssembly build path."
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]

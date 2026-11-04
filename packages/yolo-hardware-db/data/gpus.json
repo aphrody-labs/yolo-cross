@@ -1,0 +1,280 @@
+[
+  {
+    "id": "nvidia-geforce-rtx-5090",
+    "name": "NVIDIA GeForce RTX 5090",
+    "vendor": "NVIDIA",
+    "architecture": "Blackwell",
+    "pciVendorId": "10de",
+    "pciDeviceId": "2b80",
+    "busInterface": "PCIe 5.0 x16",
+    "shadingUnits": 21760,
+    "rayTracingCores": 170,
+    "tensorCores": 680,
+    "clockSpeeds": {
+      "baseMhz": 2000,
+      "boostMhz": 2600,
+      "memoryMhz": 1750
+    },
+    "memory": {
+      "sizeGb": 32,
+      "type": "GDDR7",
+      "busWidthBits": 512,
+      "bandwidthGbps": 1792
+    },
+    "tdpWatts": 600,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "rayQuery", "meshShader", "dynamicRendering", "synchronization2"],
+      "driverName": "NVIDIA Proprietary / NVK"
+    },
+    "directX": "12 Ultimate (12_2)",
+    "computeCapability": "10.0",
+    "driverLinux": "nvidia 570.86 / nvk (Mesa 24.3+)",
+    "driverWindows": "571.96",
+    "releaseDate": "2025-01-30"
+  },
+  {
+    "id": "nvidia-geforce-rtx-5080",
+    "name": "NVIDIA GeForce RTX 5080",
+    "vendor": "NVIDIA",
+    "architecture": "Blackwell",
+    "pciVendorId": "10de",
+    "pciDeviceId": "2b82",
+    "busInterface": "PCIe 5.0 x16",
+    "shadingUnits": 10752,
+    "rayTracingCores": 84,
+    "tensorCores": 336,
+    "clockSpeeds": {
+      "baseMhz": 2200,
+      "boostMhz": 2680
+    },
+    "memory": {
+      "sizeGb": 16,
+      "type": "GDDR7",
+      "busWidthBits": 256,
+      "bandwidthGbps": 1000
+    },
+    "tdpWatts": 400,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "meshShader", "dynamicRendering"],
+      "driverName": "NVIDIA"
+    },
+    "computeCapability": "10.0",
+    "releaseDate": "2025-01-30"
+  },
+  {
+    "id": "nvidia-geforce-rtx-4090",
+    "name": "NVIDIA GeForce RTX 4090",
+    "vendor": "NVIDIA",
+    "architecture": "Ada Lovelace",
+    "pciVendorId": "10de",
+    "pciDeviceId": "2684",
+    "busInterface": "PCIe 4.0 x16",
+    "shadingUnits": 16384,
+    "rayTracingCores": 128,
+    "tensorCores": 512,
+    "clockSpeeds": {
+      "baseMhz": 2235,
+      "boostMhz": 2520
+    },
+    "memory": {
+      "sizeGb": 24,
+      "type": "GDDR6X",
+      "busWidthBits": 384,
+      "bandwidthGbps": 1008
+    },
+    "tdpWatts": 450,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "meshShader", "opticalFlow"],
+      "driverName": "NVIDIA / NVK"
+    },
+    "computeCapability": "8.9",
+    "releaseDate": "2022-10-12"
+  },
+  {
+    "id": "amd-radeon-rx-9070-xt",
+    "name": "AMD Radeon RX 9070 XT",
+    "vendor": "AMD",
+    "architecture": "RDNA 4",
+    "pciVendorId": "1002",
+    "pciDeviceId": "7480",
+    "busInterface": "PCIe 5.0 x16",
+    "shadingUnits": 4096,
+    "rayTracingCores": 64,
+    "clockSpeeds": {
+      "baseMhz": 2400,
+      "boostMhz": 2900
+    },
+    "memory": {
+      "sizeGb": 16,
+      "type": "GDDR6",
+      "busWidthBits": 256,
+      "bandwidthGbps": 640
+    },
+    "tdpWatts": 280,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "meshShader", "dynamicRendering"],
+      "driverName": "RADV / AMDVLK"
+    },
+    "driverLinux": "amdgpu + mesa-radv 24.3+",
+    "releaseDate": "2025-01-20"
+  },
+  {
+    "id": "amd-radeon-rx-7900-xtx",
+    "name": "AMD Radeon RX 7900 XTX",
+    "vendor": "AMD",
+    "architecture": "RDNA 3",
+    "pciVendorId": "1002",
+    "pciDeviceId": "744c",
+    "busInterface": "PCIe 4.0 x16",
+    "shadingUnits": 6144,
+    "rayTracingCores": 96,
+    "clockSpeeds": {
+      "baseMhz": 1900,
+      "boostMhz": 2500
+    },
+    "memory": {
+      "sizeGb": 24,
+      "type": "GDDR6",
+      "busWidthBits": 384,
+      "bandwidthGbps": 960
+    },
+    "tdpWatts": 355,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "meshShader", "dynamicRendering"],
+      "driverName": "RADV"
+    },
+    "driverLinux": "amdgpu + mesa-radv",
+    "releaseDate": "2022-12-13"
+  },
+  {
+    "id": "amd-instinct-mi300x",
+    "name": "AMD Instinct MI300X",
+    "vendor": "AMD",
+    "architecture": "CDNA 3",
+    "pciVendorId": "1002",
+    "pciDeviceId": "74a1",
+    "busInterface": "PCIe 5.0 x16 / OAM",
+    "shadingUnits": 19456,
+    "clockSpeeds": {
+      "baseMhz": 1700,
+      "boostMhz": 2100
+    },
+    "memory": {
+      "sizeGb": 192,
+      "type": "HBM3e",
+      "busWidthBits": 8192,
+      "bandwidthGbps": 5300
+    },
+    "tdpWatts": 750,
+    "driverLinux": "amdgpu + ROCm 6.3+",
+    "releaseDate": "2023-12-06"
+  },
+  {
+    "id": "intel-arc-b580",
+    "name": "Intel Arc B580",
+    "vendor": "Intel",
+    "architecture": "Battlemage (Xe2-HPG)",
+    "pciVendorId": "8086",
+    "pciDeviceId": "e20b",
+    "busInterface": "PCIe 4.0 x8",
+    "shadingUnits": 2560,
+    "rayTracingCores": 20,
+    "clockSpeeds": {
+      "baseMhz": 2670,
+      "boostMhz": 2850
+    },
+    "memory": {
+      "sizeGb": 12,
+      "type": "GDDR6",
+      "busWidthBits": 192,
+      "bandwidthGbps": 456
+    },
+    "tdpWatts": 190,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["rayTracingPipeline", "meshShader", "dynamicRendering"],
+      "driverName": "Intel ANV"
+    },
+    "driverLinux": "xe kernel driver + mesa-anv 24.3+",
+    "releaseDate": "2024-12-12"
+  },
+  {
+    "id": "intel-arc-140v",
+    "name": "Intel Arc Graphics 140V",
+    "vendor": "Intel",
+    "architecture": "Xe2-LPG (Lunar Lake)",
+    "pciVendorId": "8086",
+    "pciDeviceId": "6420",
+    "shadingUnits": 1024,
+    "rayTracingCores": 8,
+    "clockSpeeds": {
+      "baseMhz": 1950,
+      "boostMhz": 2050
+    },
+    "memory": {
+      "sizeGb": 16,
+      "type": "LPDDR5X",
+      "busWidthBits": 128
+    },
+    "tdpWatts": 30,
+    "vulkanSupport": {
+      "apiVersion": "1.3.296",
+      "features": ["dynamicRendering", "rayTracingPipeline"],
+      "driverName": "Intel ANV"
+    },
+    "driverLinux": "xe + mesa-anv",
+    "releaseDate": "2024-09-03"
+  },
+  {
+    "id": "apple-m4-gpu",
+    "name": "Apple M4 Max GPU (40-core)",
+    "vendor": "Apple",
+    "architecture": "Apple M4",
+    "shadingUnits": 5120,
+    "rayTracingCores": 40,
+    "clockSpeeds": {
+      "baseMhz": 1000,
+      "boostMhz": 1600
+    },
+    "memory": {
+      "sizeGb": 128,
+      "type": "Unified",
+      "busWidthBits": 512,
+      "bandwidthGbps": 546
+    },
+    "tdpWatts": 60,
+    "metal": "Metal 3 (Dynamic Caching)",
+    "driverLinux": "Asahi Linux / AGX Mesa driver",
+    "releaseDate": "2024-10-30"
+  },
+  {
+    "id": "qualcomm-adreno-x1-85",
+    "name": "Qualcomm Adreno X1-85",
+    "vendor": "Qualcomm",
+    "architecture": "Adreno 7c+ / X1",
+    "shadingUnits": 1536,
+    "clockSpeeds": {
+      "baseMhz": 1250,
+      "boostMhz": 1400
+    },
+    "memory": {
+      "sizeGb": 16,
+      "type": "LPDDR5X",
+      "busWidthBits": 128,
+      "bandwidthGbps": 135
+    },
+    "tdpWatts": 25,
+    "vulkanSupport": {
+      "apiVersion": "1.3.280",
+      "features": ["dynamicRendering", "subgroupSizeControl"],
+      "driverName": "Turnip / MSM"
+    },
+    "driverLinux": "msm kernel + mesa-turnip",
+    "releaseDate": "2024-06-18"
+  }
+]

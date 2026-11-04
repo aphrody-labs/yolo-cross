@@ -1,0 +1,23 @@
+{
+  "name": "@yolo/bun-android",
+  "version": "1.4.7",
+  "description": "Android Gradle and JVM interoperability helpers for Bun cross-compilation workflows.",
+  "license": "MIT",
+  "bin": {
+    "bun-android": "./src/cli.ts"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./plugin": "./src/plugin.ts",
+    "./gradle": "./src/gradle.ts",
+    "./jvm": "./src/jvm.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "typecheck": "bun check -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  }
+}

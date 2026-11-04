@@ -1,0 +1,176 @@
+[
+  {
+    "id": "nvidia-linux-proprietary",
+    "name": "NVIDIA Linux Display Driver (Production / New Feature)",
+    "vendor": "NVIDIA",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "570.86.16",
+    "releaseDate": "2025-01-28",
+    "openSource": false,
+    "license": "Proprietary + Dual MIT/GPL Kernel Module",
+    "supportedHardware": ["Blackwell (RTX 50xx)", "Ada Lovelace (RTX 40xx)", "Ampere (RTX 30xx)", "Turing (RTX 20xx)"],
+    "features": [
+      "Vulkan 1.3.296",
+      "Wayland explicit sync (linux-drm-syncobj-v1)",
+      "Open kernel modules by default",
+      "GSP firmware support",
+      "Direct3D 12 via VKD3D-Proton",
+      "EGL / GBM Wayland support",
+      "CUDA 12.8"
+    ],
+    "upstreamRepo": "https://github.com/NVIDIA/open-gpu-kernel-modules",
+    "kernelModule": "nvidia",
+    "userSpaceDriver": "libGLX_nvidia.so / libvulkan_nvidia.so"
+  },
+  {
+    "id": "nvidia-windows-display-driver",
+    "name": "NVIDIA GeForce Game Ready / Studio Driver for Windows",
+    "vendor": "NVIDIA",
+    "category": "GPU",
+    "os": "Windows",
+    "latestVersion": "571.96",
+    "releaseDate": "2025-01-30",
+    "openSource": false,
+    "license": "Proprietary",
+    "supportedHardware": ["RTX 5090", "RTX 5080", "RTX 4090", "RTX 4080", "RTX 3090"],
+    "features": [
+      "DirectX 12 Ultimate",
+      "Vulkan 1.3",
+      "DLSS 4 / Multi-Frame Generation",
+      "NVIDIA Reflex",
+      "Hardware-Accelerated GPU Scheduling (HAGS)"
+    ]
+  },
+  {
+    "id": "mesa-radv",
+    "name": "Mesa RADV (Radeon Vulkan Driver)",
+    "vendor": "AMD",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.4",
+    "releaseDate": "2025-01-22",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["RDNA 4", "RDNA 3.5", "RDNA 3", "RDNA 2", "RDNA 1", "Vega", "Polaris"],
+    "features": [
+      "Vulkan 1.3 conformant",
+      "ACO compiler backend",
+      "Hardware Ray Tracing (bvh, ray queries, pipelines)",
+      "Mesh Shading",
+      "GPL (Graphics Pipeline Library)",
+      "Direct display & DRM lease",
+      "Wayland explicit sync"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/mesa/mesa",
+    "kernelModule": "amdgpu",
+    "userSpaceDriver": "radv"
+  },
+  {
+    "id": "mesa-anv",
+    "name": "Mesa ANV (Intel Vulkan Driver)",
+    "vendor": "Intel",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.4",
+    "releaseDate": "2025-01-22",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["Battlemage (Xe2-HPG)", "Lunar Lake (Xe2-LPG)", "Alchemist (DG2)", "Meteor Lake", "Tiger Lake (Gen12)"],
+    "features": [
+      "Vulkan 1.3 conformant",
+      "Xe kernel driver native support",
+      "Ray tracing pipeline support",
+      "Mesh Shading",
+      "Sparse binding",
+      "Wayland explicit sync"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/mesa/mesa",
+    "kernelModule": "xe / i915",
+    "userSpaceDriver": "anv"
+  },
+  {
+    "id": "mesa-iris",
+    "name": "Mesa Iris (Intel OpenGL Gallium Driver)",
+    "vendor": "Intel",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.4",
+    "releaseDate": "2025-01-22",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["Intel Gen8+ (Broadwell through Battlemage)"],
+    "features": [
+      "OpenGL 4.6 conformant",
+      "OpenGL ES 3.2",
+      "Gallium3D state tracker architecture"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/mesa/mesa",
+    "kernelModule": "xe / i915",
+    "userSpaceDriver": "iris"
+  },
+  {
+    "id": "mesa-nvk",
+    "name": "Mesa NVK (NVIDIA Vulkan Driver)",
+    "vendor": "NVIDIA",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.4",
+    "releaseDate": "2025-01-22",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["Turing", "Ampere", "Ada Lovelace", "Blackwell"],
+    "features": [
+      "Vulkan 1.3 conformant",
+      "NAK Rust-based optimizing compiler",
+      "Nouveau kernel module with GSP firmware",
+      "Wayland explicit sync"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/mesa/mesa",
+    "kernelModule": "nouveau",
+    "userSpaceDriver": "nvk"
+  },
+  {
+    "id": "mesa-turnip",
+    "name": "Mesa Turnip (Qualcomm Adreno Vulkan Driver)",
+    "vendor": "Qualcomm",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.4",
+    "releaseDate": "2025-01-22",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["Adreno 600 series", "Adreno 700 series", "Snapdragon X Elite Adreno X1-85"],
+    "features": [
+      "Vulkan 1.3 conformant",
+      "Hardware tessellation",
+      "Geometry shaders",
+      "Wayland explicit sync",
+      "Direct Linux/Freedreno & KGSL support"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/mesa/mesa",
+    "kernelModule": "msm",
+    "userSpaceDriver": "turnip"
+  },
+  {
+    "id": "asahi-agx",
+    "name": "Mesa AGX (Apple Silicon Vulkan & OpenGL Driver)",
+    "vendor": "Apple",
+    "category": "GPU",
+    "os": "Linux",
+    "latestVersion": "24.3.0",
+    "releaseDate": "2024-11-15",
+    "openSource": true,
+    "license": "MIT",
+    "supportedHardware": ["Apple M1", "Apple M1 Pro/Max/Ultra", "Apple M2", "Apple M3", "Apple M4"],
+    "features": [
+      "Vulkan 1.3 support (in active upstreaming)",
+      "OpenGL 4.6 conformant",
+      "OpenGL ES 3.2",
+      "Rust DRM Asahi kernel driver"
+    ],
+    "upstreamRepo": "https://gitlab.freedesktop.org/asahi/mesa",
+    "kernelModule": "asahi",
+    "userSpaceDriver": "agx"
+  }
+]

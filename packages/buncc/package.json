@@ -1,0 +1,35 @@
+{
+  "name": "@yolo/buncc",
+  "version": "1.4.7",
+  "description": "Bun C Compiler: cc/c++/ar/link driver and cross-platform toolchain orchestrator",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "buncc": "./src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./cargo": "./src/cargo.ts",
+    "./env": "./src/env.ts",
+    "./flags": "./src/flags.ts",
+    "./driver": "./src/driver.ts",
+    "./plan": "./src/plan.ts",
+    "./providers": "./src/providers/index.ts",
+    "./msvc": "./src/providers/msvc.ts",
+    "./rust": "./src/providers/rust.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  },
+  "files": [
+    "src",
+    "LICENSE-MIT",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

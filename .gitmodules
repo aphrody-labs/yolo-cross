@@ -1,3 +1,9 @@
 [submodule "docker/cross-toolchains"]
 	path = docker/cross-toolchains
 	url = https://github.com/cross-rs/cross-toolchains.git
+[submodule "manylinux-cross"]
+	path = manylinux-cross
+	url = https://github.com/rust-cross/manylinux-cross.git
+[submodule "rust-musl-cross"]
+	path = rust-musl-cross
+	url = https://github.com/rust-cross/rust-musl-cross.git

@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+[package]
+name = "yolo-wasm-wasi-hello"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "WASI command fixture for WebAssembly command build and execution."
+publish = false
+
+[[bin]]
+name = "yolo-wasm-wasi-hello"
+path = "src/main.rs"
