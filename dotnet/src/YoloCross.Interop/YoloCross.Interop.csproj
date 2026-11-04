@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Required for function pointers and fixed buffers used by interop. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Flag incompatible patterns at build time for the NativeAOT targets. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <AssemblyName>YoloCross.Interop</AssemblyName>
+    <RootNamespace>YoloCross.Interop</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Copy the Rust cdylib next to the managed assembly when it has been built,
+    so P/Invoke resolves `yolo_interop` from the output directory. The Rust
+    side is built separately (cargo build / cargo-zigbuild); see dotnet/README.md.
+  -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\yolo_interop.dll"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\yolo_interop.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(Filename)%(Extension)</Link>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\libyolo_interop.so"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\libyolo_interop.so')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+</Project>
