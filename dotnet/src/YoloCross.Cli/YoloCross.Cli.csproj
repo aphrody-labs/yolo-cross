@@ -17,4 +17,31 @@
     <ProjectReference Include="..\YoloCross.Interop\YoloCross.Interop.csproj" />
   </ItemGroup>
 
+  <!--
+    Place the correct Rust native library next to the app, for both plain build
+    (OutDir) and publish (PublishDir). RID-aware: win-* -> yolo_interop.dll,
+    linux-* -> libyolo_interop.so; a no-RID build falls back to the host OS.
+    Proper NuGet packaging would instead use runtimes/<rid>/native/ assets.
+  -->
+  <PropertyGroup>
+    <_NB>$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target</_NB>
+    <_Rid>$(RuntimeIdentifier)</_Rid>
+    <_WantWin Condition="'$(_Rid)' == '' and '$(OS)' == 'Windows_NT'">true</_WantWin>
+    <_WantWin Condition="'$(_Rid)' != '' and $(_Rid.StartsWith('win'))">true</_WantWin>
+    <_WantLinux Condition="'$(_Rid)' == '' and '$(OS)' != 'Windows_NT'">true</_WantLinux>
+    <_WantLinux Condition="'$(_Rid)' != '' and $(_Rid.StartsWith('linux'))">true</_WantLinux>
+  </PropertyGroup>
+  <ItemGroup>
+    <_YoloNative Include="$(_NB)\release\yolo_interop.dll"
+                 Condition="'$(_WantWin)' == 'true' and Exists('$(_NB)\release\yolo_interop.dll')" />
+    <_YoloNative Include="$(_NB)\x86_64-unknown-linux-gnu\release\libyolo_interop.so"
+                 Condition="'$(_WantLinux)' == 'true' and Exists('$(_NB)\x86_64-unknown-linux-gnu\release\libyolo_interop.so')" />
+  </ItemGroup>
+  <Target Name="CopyYoloNativeBuild" AfterTargets="Build">
+    <Copy SourceFiles="@(_YoloNative)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyYoloNativePublish" AfterTargets="Publish">
+    <Copy SourceFiles="@(_YoloNative)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

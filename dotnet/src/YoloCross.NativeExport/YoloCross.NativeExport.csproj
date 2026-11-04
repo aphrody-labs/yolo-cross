@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      NativeLib + PublishAot make `dotnet publish` emit a native shared library
+      (yolo_managed.dll / libyolo_managed.so) whose exported symbols are the
+      [UnmanagedCallersOnly(EntryPoint=...)] methods below. These take effect
+      only on `dotnet publish`; a plain `dotnet build` produces an ordinary
+      managed assembly.
+    -->
+    <NativeLib>Shared</NativeLib>
+    <PublishAot>true</PublishAot>
+    <AssemblyName>yolo_managed</AssemblyName>
+    <RootNamespace>YoloCross.NativeExport</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+</Project>

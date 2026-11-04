@@ -13,21 +13,11 @@
   </PropertyGroup>
 
   <!--
-    Copy the Rust cdylib next to the managed assembly when it has been built,
-    so P/Invoke resolves `yolo_interop` from the output directory. The Rust
-    side is built separately (cargo build / cargo-zigbuild); see dotnet/README.md.
+    The Rust cdylib (yolo_interop.dll / libyolo_interop.so) is placed next to the
+    consuming app by the RID-aware target in YoloCross.Cli.csproj, because a
+    framework-dependent library reference is built RID-agnostic and cannot know
+    the target OS here. The Rust side is built separately (cargo build /
+    cargo-zigbuild); see dotnet/README.md.
   -->
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\yolo_interop.dll"
-          Condition="Exists('$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\yolo_interop.dll')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>%(Filename)%(Extension)</Link>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\libyolo_interop.so"
-          Condition="Exists('$(MSBuildThisFileDirectory)..\..\native\yolo_interop\target\release\libyolo_interop.so')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>%(Filename)%(Extension)</Link>
-    </None>
-  </ItemGroup>
 
 </Project>
