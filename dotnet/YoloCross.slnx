@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/YoloCross.Cli/YoloCross.Cli.csproj" />
+    <Project Path="src/YoloCross.Interop/YoloCross.Interop.csproj" />
+    <Project Path="src/YoloCross.NativeExport/YoloCross.NativeExport.csproj" />
+  </Folder>
+</Solution>

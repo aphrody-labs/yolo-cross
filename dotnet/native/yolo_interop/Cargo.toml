@@ -1,0 +1,24 @@
+[package]
+name = "yolo_interop"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+description = "C ABI cdylib bridging Rust and C#/.NET for the yolo-cross interop layer."
+
+[lib]
+name = "yolo_interop"
+# cdylib -> yolo_interop.dll (Windows MSVC) / libyolo_interop.so (Linux).
+# staticlib kept for callers that prefer static linking.
+crate-type = ["cdylib", "staticlib"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"
+
+# Standalone workspace root: detaches this crate from the parent yolo-cross
+# Cargo workspace so building it never touches the workspace root Cargo.toml /
+# Cargo.lock owned by the live checkout.
+[workspace]
