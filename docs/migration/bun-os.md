@@ -12,15 +12,24 @@ source as proof that a component is useful, builds, or has been released.
   WebAssembly. The local package identity is rebranded; no package was published.
 - `packages/cross-plugins` (`@yolo/cross-plugins`) is the narrow compiler-plugin API; BunOS's product plugin
   registry, graph, devtools, polyfills, and Android docs crawler are excluded and preserved in the external archive.
-- `packages/windows`, `packages/bun-dotnet-windows`, and `packages/winclean` retain build and Windows interop
-  surfaces as `@yolo/windows`, `@yolo/bun-dotnet-windows`, and `@yolo/winclean`. WinClean uses
+- `@yolo/windows` now lives in `yolo-bun/packages/windows` and owns Bun's `bun:ffi` Win32, registry, service, shell,
+  `bun:windows`, and `bun:winrt` compatibility APIs. `packages/windows-interops` retains the .NET WinUI host and
+  BunOS device-driver adapter; its local dependency on the yolo-bun package is for this sibling checkout only and is
+  not a publication-ready dependency. The windows-rs Node-API provider and typed WinRT facade moved to
+  `yolo-os/crates/windows-native-napi` and `yolo-os/packages/windows-winrt`. `packages/bun-dotnet-windows` and
+  `packages/winclean` remain cross-build/interop tools as `@yolo/bun-dotnet-windows` and `@yolo/winclean`. WinClean uses
   `crates/yolo-capture`, `crates/yolo-process`, and `@yolo/kernel-client`; original sources remain in the BunOS archive.
 - `packages/android-pipeline` (`@yolo/android-pipeline`), `packages/bun-android` (`@yolo/bun-android`), and
   `packages/wasm` (`@yolo/wasm`), plus `crates/android-native`, remain in the active workspace. The WASM CLI is
   `yolo-wasm`; three fixture crates are flattened under `crates/yolo-wasm-*`. Android SDK/NDK/Gradle interfaces remain active.
 - Core Cargo sources include `crates/cross`, `crates/xtask`, `crates/cargo-xwin`, `crates/cargo-zigbuild`,
-  `crates/yolo-posix`, `crates/yolo-hardware`, and selected Windows/Android interop crates. All active Rust workspace
+  `crates/yolo-hardware`, and selected Windows/Android interop crates. Generic POSIX/GNU compatibility moved to
+  `yolo-standards/crates/yolo-posix`. All active Rust workspace
   source paths are under the root `crates/` directory.
+- Host topology and optional CUDA/clock probing moved from `crates/bun-os-native` to
+  `yolo-os/crates/bun-os-native`; it had no consumer in the cross compiler workspace.
+- The unused duplicate Bun POSIX/GNU package was removed from this workspace. yolo-web owns the byte-identical
+  `@yolo-web/posix-bun` package used by its Bun tooling; yolo-cross keeps no POSIX Bun package or runtime surface.
 - Root `Cargo.toml`, `Cargo.lock`, `package.json`, `bun.lock`, `Justfile`, and `workspace.json` describe Cargo/Bun/Just
   orchestration. The workspace remains uncommitted; catalog presence is not evidence of release or target support.
 - The selected `factory/linux-desktop` closure manifests and resolver, plus the verified .NET/PowerShell archive pins

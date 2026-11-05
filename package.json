@@ -7,13 +7,12 @@
     "bun": ">=1.4.4"
   },
   "workspaces": [
-    "packages/yolo-posix-bun",
     "packages/yolo-hardware-db",
     "packages/buncc",
     "packages/cross-plugins",
     "packages/android-pipeline",
     "packages/wasm",
-    "packages/windows",
+    "packages/windows-interops",
     "packages/winclean",
     "packages/kernel-client",
     "packages/bun-dotnet-windows",

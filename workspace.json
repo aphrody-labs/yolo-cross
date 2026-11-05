@@ -34,18 +34,6 @@
       "targetCatalog": false
     },
     {
-      "name": "yolo-posix",
-      "path": "crates/yolo-posix",
-      "kind": "cargo",
-      "targetCatalog": false
-    },
-    {
-      "name": "yolo-posix-bun",
-      "path": "packages/yolo-posix-bun",
-      "kind": "bun-package",
-      "targetCatalog": false
-    },
-    {
       "name": "yolo-hardware-db",
       "path": "packages/yolo-hardware-db",
       "kind": "bun-package",
@@ -100,18 +88,6 @@
       "targetCatalog": false
     },
     {
-      "name": "bun-os-native",
-      "path": "crates/bun-os-native",
-      "kind": "cargo",
-      "targetCatalog": false
-    },
-    {
-      "name": "windows-native-napi",
-      "path": "crates/windows-native-napi",
-      "kind": "cargo",
-      "targetCatalog": false
-    },
-    {
       "name": "yolo-wasm-raw",
       "path": "crates/yolo-wasm-raw",
       "kind": "cargo",
@@ -154,8 +130,8 @@
       "targetCatalog": false
     },
     {
-      "name": "windows",
-      "path": "packages/windows",
+      "name": "windows-interops",
+      "path": "packages/windows-interops",
       "kind": "bun-package",
       "targetCatalog": false
     },

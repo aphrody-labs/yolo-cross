@@ -13,11 +13,11 @@ Windows 11. This verifies host compilation only; target SDKs, cross-produced
 artifacts, and the generated target matrix still require validation.
 
 The Cargo workspace includes `cross`, `xtask`, `cargo-xwin`, `cargo-zigbuild`,
-POSIX/hardware support, Android JNI, Windows process/capture and maintenance
-interop, and BunOS NT/Steam adapters. `workspace.json` lists every Cargo
+target-hardware profiles, Android JNI, Windows process/capture and maintenance
+interop, and BunOS NT/Steam adapters. Generic POSIX/GNU compatibility now lives
+in the sibling `yolo-standards` repository. `workspace.json` lists every Cargo
 package path as well as Bun package and image projects. The platform layer
-includes `yolo-posix` and `yolo-hardware` Rust crates, with `yolo-posix-bun`
-and `yolo-hardware-db` Bun packages.
+includes the `yolo-hardware` Rust crate and `yolo-hardware-db` Bun package.
 `schemas/` holds hardware, CPU/GPU, virtualization, POSIX, Linux, Wayland,
 WebGPU, and Khronos data. Platform and architecture notes live in `docs/`.
 

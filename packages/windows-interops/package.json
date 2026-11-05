@@ -1,0 +1,37 @@
+{
+  "name": "@yolo/windows-interops",
+  "version": "1.4.7",
+  "private": true,
+  "description": "Cross-workspace Windows UI and BunOS driver interop adapters.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "src",
+    "native",
+    "README.md",
+    "LICENSE-APACHE"
+  ],
+  "os": [
+    "win32"
+  ],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./winui": "./src/winui.ts",
+    "./nt-driver": "./src/nt-driver.ts",
+    "./fork/winui": "./src/fork/winui.ts"
+  },
+  "scripts": {
+    "build:winui": "bun -e \"import {buildHost} from './src/winui'; await buildHost()\"",
+    "test": "bun test",
+    "typecheck": "bun check --no-script --project tsconfig.json"
+  },
+  "dependencies": {
+    "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+    "@yolo/cross-plugins": "workspace:*"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  }
+}
