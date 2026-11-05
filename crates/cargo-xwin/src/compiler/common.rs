@@ -240,10 +240,10 @@ pub fn get_rustflags(workdir: &Path, target: &str) -> Result<Option<cargo_config
 /// the MSVC C runtime library.
 pub fn is_static_crt_enabled(workdir: &Path, target: &str) -> Result<bool> {
     // Check RUSTFLAGS environment variable first
-    if let Ok(rustflags) = env::var("RUSTFLAGS") {
-        if rustflags.contains("+crt-static") {
-            return Ok(true);
-        }
+    if let Ok(rustflags) = env::var("RUSTFLAGS")
+        && rustflags.contains("+crt-static")
+    {
+        return Ok(true);
     }
 
     // Check cargo configuration
@@ -298,9 +298,18 @@ pub fn http_agent() -> Result<ureq::Agent> {
 mod tests {
     use super::*;
     use std::env;
+    use std::sync::Mutex;
+
+    // RUSTFLAGS is process-global and the test harness runs tests in parallel threads.
+    static RUSTFLAGS_LOCK: Mutex<()> = Mutex::new(());
+
+    fn rustflags_lock() -> std::sync::MutexGuard<'static, ()> {
+        RUSTFLAGS_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+    }
 
     #[test]
     fn test_is_static_crt_enabled_env_var() {
+        let _guard = rustflags_lock();
         // Test with RUSTFLAGS environment variable containing +crt-static
         unsafe {
             env::set_var("RUSTFLAGS", "-C target-feature=+crt-static");
@@ -327,6 +336,7 @@ mod tests {
 
     #[test]
     fn test_is_static_crt_enabled_no_flags() {
+        let _guard = rustflags_lock();
         // Test with no RUSTFLAGS
         unsafe {
             env::remove_var("RUSTFLAGS");
@@ -339,14 +349,15 @@ mod tests {
 
     #[test]
     fn test_is_static_crt_enabled_config_file() {
+        let _guard = rustflags_lock();
         // Test with a temporary config file containing +crt-static
         let test_dir = std::env::temp_dir().join("test_cargo_config");
-        std::fs::create_dir_all(&test_dir).unwrap();
-        std::fs::create_dir_all(test_dir.join(".cargo")).unwrap();
+        fs_err::create_dir_all(&test_dir).unwrap();
+        fs_err::create_dir_all(test_dir.join(".cargo")).unwrap();
 
         let config_content = r#"[target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]"#;
-        std::fs::write(test_dir.join(".cargo/config.toml"), config_content).unwrap();
+        fs_err::write(test_dir.join(".cargo/config.toml"), config_content).unwrap();
 
         unsafe {
             env::remove_var("RUSTFLAGS");
@@ -357,6 +368,6 @@ rustflags = ["-C", "target-feature=+crt-static"]"#;
         assert!(result.unwrap());
 
         // Clean up
-        std::fs::remove_dir_all(&test_dir).unwrap();
+        fs_err::remove_dir_all(&test_dir).unwrap();
     }
 }

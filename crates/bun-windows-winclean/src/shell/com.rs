@@ -17,7 +17,7 @@ use windows::{
         Foundation::DISP_E_EXCEPTION,
         System::{
             Com::{
-                CLSCTX_LOCAL_SERVER, CLSCTX_INPROC_SERVER, CLSIDFromProgID, CLSIDFromString,
+                CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, CLSIDFromProgID, CLSIDFromString,
                 COINIT_APARTMENTTHREADED, CoCreateInstance, DISPATCH_FLAGS, DISPATCH_METHOD,
                 DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT, DISPPARAMS, EXCEPINFO, IDispatch,
             },
@@ -36,23 +36,31 @@ const MAX_ENUMERATE: usize = 100_000;
 
 fn clsid(prog_id: Option<&str>, clsid: Option<&str>) -> io::Result<GUID> {
     if let Some(text) = clsid {
-        let braced = if text.starts_with('{') { text.to_owned() } else { format!("{{{text}}}") };
+        let braced = if text.starts_with('{') {
+            text.to_owned()
+        } else {
+            format!("{{{text}}}")
+        };
         let wide_text = wide(&braced);
         // SAFETY: parses a CLSID string.
         return unsafe { CLSIDFromString(pcwstr(&wide_text)) }
             .map_err(|e| hresult_error(&e, &format!("parse CLSID {text}")));
     }
-    let prog_id = prog_id.ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "progId or clsid is required"))?;
+    let prog_id = prog_id.ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "progId or clsid is required")
+    })?;
     let wide_id = wide(prog_id);
     // SAFETY: registry lookup of a ProgID.
-    unsafe { CLSIDFromProgID(pcwstr(&wide_id)) }.map_err(|e| hresult_error(&e, &format!("resolve ProgID {prog_id}")))
+    unsafe { CLSIDFromProgID(pcwstr(&wide_id)) }
+        .map_err(|e| hresult_error(&e, &format!("resolve ProgID {prog_id}")))
 }
 
 fn create(id: &GUID, attach: bool) -> io::Result<IDispatch> {
     if attach {
         let mut unknown: Option<IUnknown> = None;
         // SAFETY: looks the CLSID up in the running object table.
-        unsafe { GetActiveObject(id, None, &mut unknown) }.map_err(|e| hresult_error(&e, "GetActiveObject"))?;
+        unsafe { GetActiveObject(id, None, &mut unknown) }
+            .map_err(|e| hresult_error(&e, "GetActiveObject"))?;
         return unknown
             .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "no running instance"))?
             .cast::<IDispatch>()
@@ -68,8 +76,16 @@ fn dispid(object: &IDispatch, name: &str) -> io::Result<i32> {
     let names = [pcwstr(&wide_name)];
     let mut id = 0i32;
     // SAFETY: one name in, one DISPID out.
-    unsafe { object.GetIDsOfNames(&GUID::zeroed(), names.as_ptr(), 1, LOCALE_USER_DEFAULT, &mut id) }
-        .map_err(|e| hresult_error(&e, &format!("unknown member `{name}`")))?;
+    unsafe {
+        object.GetIDsOfNames(
+            &GUID::zeroed(),
+            names.as_ptr(),
+            1,
+            LOCALE_USER_DEFAULT,
+            &mut id,
+        )
+    }
+    .map_err(|e| hresult_error(&e, &format!("unknown member `{name}`")))?;
     Ok(id)
 }
 
@@ -86,7 +102,11 @@ fn invoke_id(
     let put = flags == DISPATCH_PROPERTYPUT;
     let params = DISPPARAMS {
         rgvarg: args.as_mut_ptr().cast::<VARIANT>(),
-        rgdispidNamedArgs: if put { named.as_mut_ptr() } else { std::ptr::null_mut() },
+        rgdispidNamedArgs: if put {
+            named.as_mut_ptr()
+        } else {
+            std::ptr::null_mut()
+        },
         cArgs: args.len() as u32,
         cNamedArgs: u32::from(put),
     };
@@ -119,7 +139,10 @@ fn invoke_id(
         Err(error) if error.code() == DISP_E_EXCEPTION => Err(io::Error::other(format!(
             "{label}: {source}: {description}"
         ))),
-        Err(error) => Err(hresult_error(&error, &format!("{label} (argument {arg_error})"))),
+        Err(error) => Err(hresult_error(
+            &error,
+            &format!("{label} (argument {arg_error})"),
+        )),
     }
 }
 
@@ -129,8 +152,12 @@ fn object_at(objects: &[Option<IDispatch>], index: u64) -> Option<&IDispatch> {
 
 fn argument(value: &Value, objects: &[Option<IDispatch>]) -> io::Result<OwnedVariant> {
     if let Some(index) = value.get("$step").and_then(Value::as_u64) {
-        let object = object_at(objects, index)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, format!("$step {index} is not an object")))?;
+        let object = object_at(objects, index).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("$step {index} is not an object"),
+            )
+        })?;
         return Ok(from_dispatch(object));
     }
     Ok(from_json(value))
@@ -146,16 +173,35 @@ fn enumerate(object: &IDispatch, spec: &Value) -> io::Result<Value> {
     let properties: Vec<String> = spec
         .get("properties")
         .and_then(Value::as_array)
-        .map(|names| names.iter().filter_map(|n| n.as_str().map(str::to_owned)).collect())
+        .map(|names| {
+            names
+                .iter()
+                .filter_map(|n| n.as_str().map(str::to_owned))
+                .collect()
+        })
         .unwrap_or_default();
-    let limit = spec.get("limit").and_then(Value::as_u64).map_or(MAX_ENUMERATE, |n| n as usize);
-    let holder = invoke_id(object, DISPID_NEWENUM, "_NewEnum", DISPATCH_METHOD | DISPATCH_PROPERTYGET, Vec::new())?;
+    let limit = spec
+        .get("limit")
+        .and_then(Value::as_u64)
+        .map_or(MAX_ENUMERATE, |n| n as usize);
+    let holder = invoke_id(
+        object,
+        DISPID_NEWENUM,
+        "_NewEnum",
+        DISPATCH_METHOD | DISPATCH_PROPERTYGET,
+        Vec::new(),
+    )?;
     // SAFETY: `_NewEnum` returns VT_UNKNOWN or VT_DISPATCH; read the matching member.
     let unknown: Option<IUnknown> = unsafe {
         let inner = &holder.0.Anonymous.Anonymous;
         match inner.vt {
             VT_UNKNOWN => (*inner.Anonymous.punkVal).clone(),
-            VT_DISPATCH => (*inner.Anonymous.pdispVal).clone().map(|d| d.cast::<IUnknown>()).transpose().ok().flatten(),
+            VT_DISPATCH => (*inner.Anonymous.pdispVal)
+                .clone()
+                .map(|d| d.cast::<IUnknown>())
+                .transpose()
+                .ok()
+                .flatten(),
             _ => None,
         }
     };
@@ -201,20 +247,34 @@ pub fn invoke(args: &Value) -> io::Result<Value> {
     let mut objects: Vec<Option<IDispatch>> = vec![Some(root.clone())];
     let mut current = root;
     let mut last = from_dispatch(&current);
-    let steps = args.get("steps").and_then(Value::as_array).cloned().unwrap_or_default();
+    let steps = args
+        .get("steps")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     for (index, step) in steps.iter().enumerate() {
-        let name = step
-            .get("name")
-            .and_then(Value::as_str)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, format!("step {index} has no name")))?;
+        let name = step.get("name").and_then(Value::as_str).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("step {index} has no name"),
+            )
+        })?;
         if let Some(on) = step.get("on").and_then(Value::as_u64) {
-            current = object_at(&objects, on)
-                .cloned()
-                .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, format!("step {index}: on={on} is not an object")))?;
+            current = object_at(&objects, on).cloned().ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("step {index}: on={on} is not an object"),
+                )
+            })?;
         }
         let op = step.get("op").and_then(Value::as_str).unwrap_or("auto");
         let mut call_args = Vec::new();
-        for value in step.get("args").and_then(Value::as_array).into_iter().flatten() {
+        for value in step
+            .get("args")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
             call_args.push(argument(value, &objects)?);
         }
         let flags = match op {
@@ -236,7 +296,9 @@ pub fn invoke(args: &Value) -> io::Result<Value> {
             objects.push(None);
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                format!("step {index} (`{name}`) returned a value, not an object (use \"on\" to address an earlier object)"),
+                format!(
+                    "step {index} (`{name}`) returned a value, not an object (use \"on\" to address an earlier object)"
+                ),
             ));
         } else {
             objects.push(None);

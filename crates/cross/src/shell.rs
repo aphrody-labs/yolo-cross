@@ -124,9 +124,11 @@ impl FromStr for ColorChoice {
             "always" => Ok(ColorChoice::Always),
             "never" => Ok(ColorChoice::Never),
             "auto" => Ok(ColorChoice::Auto),
-            arg => eyre::bail!(
-                "argument for --color must be auto, always, or never, but found `{arg}`"
-            ),
+            arg => {
+                eyre::bail!(
+                    "argument for --color must be auto, always, or never, but found `{arg}`"
+                );
+            }
         }
     }
 }

@@ -73,7 +73,10 @@ impl RegData {
     #[must_use]
     pub fn encode(&self) -> (u32, Vec<u8>) {
         fn utf16z(s: &str) -> Vec<u8> {
-            s.encode_utf16().chain([0]).flat_map(u16::to_le_bytes).collect()
+            s.encode_utf16()
+                .chain([0])
+                .flat_map(u16::to_le_bytes)
+                .collect()
         }
         match self {
             Self::Dword(v) => (4, v.to_le_bytes().to_vec()),
@@ -81,10 +84,7 @@ impl RegData {
             Self::Sz(s) => (1, utf16z(s)),
             Self::ExpandSz(s) => (2, utf16z(s)),
             Self::MultiSz(items) => {
-                let mut out: Vec<u8> = items
-                    .iter()
-                    .flat_map(|s| utf16z(s))
-                    .collect();
+                let mut out: Vec<u8> = items.iter().flat_map(|s| utf16z(s)).collect();
                 out.extend([0, 0]);
                 (7, out)
             }
@@ -96,14 +96,20 @@ impl RegData {
     #[must_use]
     pub fn decode(kind: u32, data: &[u8]) -> Self {
         fn utf16(data: &[u8]) -> Vec<u16> {
-            data.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect()
+            data.as_chunks::<2>()
+                .0
+                .iter()
+                .map(|c| u16::from_le_bytes([c[0], c[1]]))
+                .collect()
         }
         fn until_nul(units: &[u16]) -> String {
             let end = units.iter().position(|&u| u == 0).unwrap_or(units.len());
             String::from_utf16_lossy(&units[..end])
         }
         match kind {
-            4 if data.len() >= 4 => Self::Dword(u32::from_le_bytes([data[0], data[1], data[2], data[3]])),
+            4 if data.len() >= 4 => {
+                Self::Dword(u32::from_le_bytes([data[0], data[1], data[2], data[3]]))
+            }
             11 if data.len() >= 8 => {
                 let mut b = [0u8; 8];
                 b.copy_from_slice(&data[..8]);
@@ -252,16 +258,44 @@ pub struct Catalog {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Op {
-    RegSet { hive: RegHive, key: String, name: String, data: RegData },
-    RegDeleteValue { hive: RegHive, key: String, name: String },
-    RegDeleteKey { hive: RegHive, key: String },
-    AppxRemove { family: String },
-    ServiceStart { name: String, start: StartType },
-    TaskDisable { path: String },
-    CapabilityRemove { name: String },
-    Feature { name: String, state: FeatureState },
-    FileRemove { path: String },
-    PowerScheme { guid: String },
+    RegSet {
+        hive: RegHive,
+        key: String,
+        name: String,
+        data: RegData,
+    },
+    RegDeleteValue {
+        hive: RegHive,
+        key: String,
+        name: String,
+    },
+    RegDeleteKey {
+        hive: RegHive,
+        key: String,
+    },
+    AppxRemove {
+        family: String,
+    },
+    ServiceStart {
+        name: String,
+        start: StartType,
+    },
+    TaskDisable {
+        path: String,
+    },
+    CapabilityRemove {
+        name: String,
+    },
+    Feature {
+        name: String,
+        state: FeatureState,
+    },
+    FileRemove {
+        path: String,
+    },
+    PowerScheme {
+        guid: String,
+    },
 }
 
 /// The observed state of one operation's target, recorded before a change (the undo payload).
@@ -270,16 +304,30 @@ pub enum Op {
 pub enum State {
     /// The target does not exist (no value, key, service, task, package or file).
     Absent,
-    Value { data: RegData },
+    Value {
+        data: RegData,
+    },
     KeyPresent,
     /// Installed packages matching the family prefix (full names).
-    Packages { full_names: Vec<String> },
-    Start { start: StartType },
-    Task { enabled: bool },
-    Installed { installed: bool },
-    Feature { state: FeatureState },
+    Packages {
+        full_names: Vec<String>,
+    },
+    Start {
+        start: StartType,
+    },
+    Task {
+        enabled: bool,
+    },
+    Installed {
+        installed: bool,
+    },
+    Feature {
+        state: FeatureState,
+    },
     FilePresent,
-    Power { guid: String },
+    Power {
+        guid: String,
+    },
 }
 
 // ---------------------------------------------------------------------------------------------------- guardrails
@@ -287,26 +335,87 @@ pub enum State {
 /// Services the engine refuses to touch whatever the catalog or profile says: security, updates, virtualisation
 /// (WSL, Hyper-V), Store, networking, remote access and the Bun OS / agent stack.
 pub const PROTECTED_SERVICES: &[&str] = &[
-    "windefend", "wdnissvc", "sense", "securityhealthservice", "mpssvc", "bfe", "wscsvc", "wuauserv", "usosvc",
-    "waasmedicsvc", "bits", "cryptsvc", "trustedinstaller", "lxssmanager", "wslservice", "vmcompute", "vmms",
-    "hvhost", "vmicheartbeat", "hns", "sharedaccess", "installservice", "appxsvc", "clipsvc", "dnscache", "dhcp",
-    "nsi", "netprofm", "nlasvc", "wlansvc", "lanmanworkstation", "winhttpautoproxysvc", "iphlpsvc", "sshd",
-    "ssh-agent", "termservice", "eventlog", "rpcss", "schedule", "plugplay", "power", "audiosrv", "themes",
+    "windefend",
+    "wdnissvc",
+    "sense",
+    "securityhealthservice",
+    "mpssvc",
+    "bfe",
+    "wscsvc",
+    "wuauserv",
+    "usosvc",
+    "waasmedicsvc",
+    "bits",
+    "cryptsvc",
+    "trustedinstaller",
+    "lxssmanager",
+    "wslservice",
+    "vmcompute",
+    "vmms",
+    "hvhost",
+    "vmicheartbeat",
+    "hns",
+    "sharedaccess",
+    "installservice",
+    "appxsvc",
+    "clipsvc",
+    "dnscache",
+    "dhcp",
+    "nsi",
+    "netprofm",
+    "nlasvc",
+    "wlansvc",
+    "lanmanworkstation",
+    "winhttpautoproxysvc",
+    "iphlpsvc",
+    "sshd",
+    "ssh-agent",
+    "termservice",
+    "eventlog",
+    "rpcss",
+    "schedule",
+    "plugplay",
+    "power",
+    "audiosrv",
+    "themes",
 ];
 
 /// Service name prefixes protected the same way (WireGuard tunnels, cloudflared, Bun OS and agent services).
-pub const PROTECTED_SERVICE_PREFIXES: &[&str] =
-    &["wireguard", "cloudflared", "aphrody", "bunos", "claude", "tailscale", "openssh"];
+pub const PROTECTED_SERVICE_PREFIXES: &[&str] = &[
+    "wireguard",
+    "cloudflared",
+    "aphrody",
+    "bunos",
+    "claude",
+    "tailscale",
+    "openssh",
+];
 
 /// Package family prefixes never removed: Store, App Installer (winget), runtimes, shell, security, WebView2.
 pub const PROTECTED_APPX: &[&str] = &[
-    "Microsoft.WindowsStore", "Microsoft.StorePurchaseApp", "Microsoft.DesktopAppInstaller", "Microsoft.VCLibs",
-    "Microsoft.NET", "Microsoft.UI.Xaml", "Microsoft.WindowsAppRuntime", "Microsoft.SecHealthUI",
-    "Microsoft.Windows.ShellExperienceHost", "Microsoft.Windows.StartMenuExperienceHost", "MicrosoftWindows.Client.CBS",
-    "MicrosoftWindows.Client.Core", "Microsoft.Windows.SecHealthUI", "Microsoft.WebView2", "Microsoft.Win32WebViewHost",
-    "Microsoft.WindowsTerminal", "Microsoft.WSL", "MicrosoftCorporationII.WindowsSubsystemForLinux",
-    "Microsoft.AAD.BrokerPlugin", "Microsoft.AccountsControl", "Microsoft.Windows.CloudExperienceHost",
-    "Microsoft.LockApp", "Microsoft.Windows.ContentDeliveryManager",
+    "Microsoft.WindowsStore",
+    "Microsoft.StorePurchaseApp",
+    "Microsoft.DesktopAppInstaller",
+    "Microsoft.VCLibs",
+    "Microsoft.NET",
+    "Microsoft.UI.Xaml",
+    "Microsoft.WindowsAppRuntime",
+    "Microsoft.SecHealthUI",
+    "Microsoft.Windows.ShellExperienceHost",
+    "Microsoft.Windows.StartMenuExperienceHost",
+    "MicrosoftWindows.Client.CBS",
+    "MicrosoftWindows.Client.Core",
+    "Microsoft.Windows.SecHealthUI",
+    "Microsoft.WebView2",
+    "Microsoft.Win32WebViewHost",
+    "Microsoft.WindowsTerminal",
+    "Microsoft.WSL",
+    "MicrosoftCorporationII.WindowsSubsystemForLinux",
+    "Microsoft.AAD.BrokerPlugin",
+    "Microsoft.AccountsControl",
+    "Microsoft.Windows.CloudExperienceHost",
+    "Microsoft.LockApp",
+    "Microsoft.Windows.ContentDeliveryManager",
 ];
 
 /// Registry key prefixes never written: Defender, Windows Update, virtualisation and networking policy.
@@ -325,12 +434,21 @@ pub const PROTECTED_KEYS: &[&str] = &[
 
 /// Features and capabilities that may only be enabled, never disabled or removed.
 pub const PROTECTED_FEATURES: &[&str] = &[
-    "Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform", "Microsoft-Hyper-V", "HypervisorPlatform",
-    "Containers", "NetFx", "OpenSSH", "Windows-Defender",
+    "Microsoft-Windows-Subsystem-Linux",
+    "VirtualMachinePlatform",
+    "Microsoft-Hyper-V",
+    "HypervisorPlatform",
+    "Containers",
+    "NetFx",
+    "OpenSSH",
+    "Windows-Defender",
 ];
 
 /// Paths (relative to the image root) never removed.
-pub const PROTECTED_FILES: &[&str] = &[r"Windows\System32\Microsoft-Edge-Webview", r"Program Files (x86)\Microsoft\EdgeWebView"];
+pub const PROTECTED_FILES: &[&str] = &[
+    r"Windows\System32\Microsoft-Edge-Webview",
+    r"Program Files (x86)\Microsoft\EdgeWebView",
+];
 
 fn starts_with_ci(haystack: &str, prefix: &str) -> bool {
     haystack.len() >= prefix.len() && haystack[..prefix.len()].eq_ignore_ascii_case(prefix)
@@ -340,14 +458,18 @@ fn starts_with_ci(haystack: &str, prefix: &str) -> bool {
 #[must_use]
 pub fn guard(op: &Op) -> Option<String> {
     match op {
-        Op::RegSet { key, .. } | Op::RegDeleteValue { key, .. } | Op::RegDeleteKey { key, .. } => PROTECTED_KEYS
-            .iter()
-            .find(|p| starts_with_ci(key, p))
-            .map(|p| format!("registry key under protected {p}")),
+        Op::RegSet { key, .. } | Op::RegDeleteValue { key, .. } | Op::RegDeleteKey { key, .. } => {
+            PROTECTED_KEYS
+                .iter()
+                .find(|p| starts_with_ci(key, p))
+                .map(|p| format!("registry key under protected {p}"))
+        }
         Op::ServiceStart { name, .. } => {
             let lower = name.to_ascii_lowercase();
             (PROTECTED_SERVICES.contains(&lower.as_str())
-                || PROTECTED_SERVICE_PREFIXES.iter().any(|p| lower.starts_with(p)))
+                || PROTECTED_SERVICE_PREFIXES
+                    .iter()
+                    .any(|p| lower.starts_with(p)))
             .then(|| format!("protected service {name}"))
         }
         Op::AppxRemove { family } => PROTECTED_APPX
@@ -358,7 +480,10 @@ pub fn guard(op: &Op) -> Option<String> {
             .iter()
             .find(|p| name.to_ascii_lowercase().contains(&p.to_ascii_lowercase()))
             .map(|p| format!("protected capability {p}")),
-        Op::Feature { name, state: FeatureState::Disabled } => PROTECTED_FEATURES
+        Op::Feature {
+            name,
+            state: FeatureState::Disabled,
+        } => PROTECTED_FEATURES
             .iter()
             .find(|p| starts_with_ci(name, p))
             .map(|p| format!("protected feature {p} may not be disabled")),
@@ -389,12 +514,22 @@ fn reg_data(entry: &RegEntry) -> Result<RegData, String> {
     let kind = entry.kind.as_deref().unwrap_or("dword");
     let value = entry.value.as_ref().ok_or("registry set without value")?;
     Ok(match (kind, value) {
-        ("dword", toml::Value::Integer(i)) => RegData::Dword(u32::try_from(*i).map_err(|_| "dword out of range")?),
-        ("qword", toml::Value::Integer(i)) => RegData::Qword(u64::try_from(*i).map_err(|_| "qword out of range")?),
+        ("dword", toml::Value::Integer(i)) => {
+            RegData::Dword(u32::try_from(*i).map_err(|_| "dword out of range")?)
+        }
+        ("qword", toml::Value::Integer(i)) => {
+            RegData::Qword(u64::try_from(*i).map_err(|_| "qword out of range")?)
+        }
         ("sz", toml::Value::String(s)) => RegData::Sz(s.clone()),
         ("expand_sz", toml::Value::String(s)) => RegData::ExpandSz(s.clone()),
         ("multi_sz", toml::Value::Array(a)) => RegData::MultiSz(
-            a.iter().map(|v| v.as_str().map(str::to_owned).ok_or("multi_sz items must be strings")).collect::<Result<_, _>>()?,
+            a.iter()
+                .map(|v| {
+                    v.as_str()
+                        .map(str::to_owned)
+                        .ok_or("multi_sz items must be strings")
+                })
+                .collect::<Result<_, _>>()?,
         ),
         // REG_BINARY as a hex string ("ff00a2..."; spaces allowed), e.g. Explorer's 32-byte AccentPalette.
         ("binary", toml::Value::String(s)) => {
@@ -405,7 +540,9 @@ fn reg_data(entry: &RegEntry) -> Result<RegData, String> {
             RegData::Binary(
                 (0..hex.len())
                     .step_by(2)
-                    .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).map_err(|_| "binary: invalid hex"))
+                    .map(|i| {
+                        u8::from_str_radix(&hex[i..i + 2], 16).map_err(|_| "binary: invalid hex")
+                    })
                     .collect::<Result<_, _>>()?,
             )
         }
@@ -430,16 +567,45 @@ impl Tweak {
                     key: r.key.clone(),
                     name: r.name.clone().ok_or("delete_value without name")?,
                 },
-                RegAction::DeleteKey => Op::RegDeleteKey { hive: r.hive, key: r.key.clone() },
+                RegAction::DeleteKey => Op::RegDeleteKey {
+                    hive: r.hive,
+                    key: r.key.clone(),
+                },
             });
         }
-        ops.extend(self.appx.iter().map(|f| Op::AppxRemove { family: f.clone() }));
-        ops.extend(self.services.iter().map(|s| Op::ServiceStart { name: s.name.clone(), start: s.start }));
-        ops.extend(self.tasks.iter().map(|t| Op::TaskDisable { path: t.clone() }));
-        ops.extend(self.capabilities.iter().map(|c| Op::CapabilityRemove { name: c.clone() }));
-        ops.extend(self.features.iter().map(|f| Op::Feature { name: f.name.clone(), state: f.state }));
-        ops.extend(self.files.iter().map(|f| Op::FileRemove { path: f.clone() }));
-        ops.extend(self.power.iter().map(|g| Op::PowerScheme { guid: g.clone() }));
+        ops.extend(
+            self.appx
+                .iter()
+                .map(|f| Op::AppxRemove { family: f.clone() }),
+        );
+        ops.extend(self.services.iter().map(|s| Op::ServiceStart {
+            name: s.name.clone(),
+            start: s.start,
+        }));
+        ops.extend(
+            self.tasks
+                .iter()
+                .map(|t| Op::TaskDisable { path: t.clone() }),
+        );
+        ops.extend(
+            self.capabilities
+                .iter()
+                .map(|c| Op::CapabilityRemove { name: c.clone() }),
+        );
+        ops.extend(self.features.iter().map(|f| Op::Feature {
+            name: f.name.clone(),
+            state: f.state,
+        }));
+        ops.extend(
+            self.files
+                .iter()
+                .map(|f| Op::FileRemove { path: f.clone() }),
+        );
+        ops.extend(
+            self.power
+                .iter()
+                .map(|g| Op::PowerScheme { guid: g.clone() }),
+        );
         Ok(ops)
     }
 }
@@ -454,22 +620,37 @@ impl Catalog {
                 return Err(TweakError::Catalog(format!("duplicate tweak id {}", t.id)));
             }
             if !catalog.modules.iter().any(|m| m.id == t.module) {
-                return Err(TweakError::Catalog(format!("{}: unknown module {}", t.id, t.module)));
+                return Err(TweakError::Catalog(format!(
+                    "{}: unknown module {}",
+                    t.id, t.module
+                )));
             }
             if !t.id.starts_with(&format!("{}.", t.module)) {
-                return Err(TweakError::Catalog(format!("{}: id must start with its module", t.id)));
+                return Err(TweakError::Catalog(format!(
+                    "{}: id must start with its module",
+                    t.id
+                )));
             }
-            let ops = t.ops().map_err(|e| TweakError::Catalog(format!("{}: {e}", t.id)))?;
+            let ops = t
+                .ops()
+                .map_err(|e| TweakError::Catalog(format!("{}: {e}", t.id)))?;
             for op in &ops {
                 if let Some(why) = guard(op) {
                     return Err(TweakError::Catalog(format!("{}: refused: {why}", t.id)));
                 }
                 let offline_only = matches!(op, Op::FileRemove { .. } | Op::RegDeleteKey { .. });
                 if offline_only && t.targets.contains(&TargetKind::Live) {
-                    return Err(TweakError::Catalog(format!("{}: file/key removal is offline-only", t.id)));
+                    return Err(TweakError::Catalog(format!(
+                        "{}: file/key removal is offline-only",
+                        t.id
+                    )));
                 }
-                if matches!(op, Op::PowerScheme { .. }) && t.targets.contains(&TargetKind::Offline) {
-                    return Err(TweakError::Catalog(format!("{}: power schemes are live-only", t.id)));
+                if matches!(op, Op::PowerScheme { .. }) && t.targets.contains(&TargetKind::Offline)
+                {
+                    return Err(TweakError::Catalog(format!(
+                        "{}: power schemes are live-only",
+                        t.id
+                    )));
                 }
             }
         }
@@ -576,7 +757,8 @@ impl Profile {
             .filter(|t| !self.exclude.contains(&t.id))
             .filter(|t| {
                 self.include.contains(&t.id)
-                    || (t.level <= self.level && (self.modules.is_empty() || self.modules.contains(&t.module)))
+                    || (t.level <= self.level
+                        && (self.modules.is_empty() || self.modules.contains(&t.module)))
             })
             .collect())
     }
@@ -674,7 +856,10 @@ fn not_present(op: &Op, state: &State) -> bool {
     // A task, service or package that does not exist on this system needs nothing; a registry value that does not
     // exist is simply created.
     matches!(state, State::Absent)
-        && matches!(op, Op::TaskDisable { .. } | Op::ServiceStart { .. } | Op::AppxRemove { .. })
+        && matches!(
+            op,
+            Op::TaskDisable { .. } | Op::ServiceStart { .. } | Op::AppxRemove { .. }
+        )
 }
 
 /// Detect every operation of `tweaks` and build the plan. Nothing is changed.
@@ -687,7 +872,9 @@ pub fn plan(backend: &mut dyn Backend, profile: &Profile, tweaks: &[&Tweak], now
                 steps.push(Step {
                     tweak: t.id.clone(),
                     module: t.module.clone(),
-                    op: Op::PowerScheme { guid: String::new() },
+                    op: Op::PowerScheme {
+                        guid: String::new(),
+                    },
                     before: State::Absent,
                     action: "error".into(),
                     reason: Some(e),
@@ -714,7 +901,11 @@ pub fn plan(backend: &mut dyn Backend, profile: &Profile, tweaks: &[&Tweak], now
                 match backend.detect(&op) {
                     Ok(state) => {
                         step.action = if satisfied(&op, &state) {
-                            if not_present(&op, &state) { "skip" } else { "ok" }
+                            if not_present(&op, &state) {
+                                "skip"
+                            } else {
+                                "ok"
+                            }
                         } else {
                             "change"
                         }
@@ -730,7 +921,13 @@ pub fn plan(backend: &mut dyn Backend, profile: &Profile, tweaks: &[&Tweak], now
             steps.push(step);
         }
     }
-    Plan { schema: 1, target: backend.kind(), created: now.to_owned(), profile: profile.clone(), steps }
+    Plan {
+        schema: 1,
+        target: backend.kind(),
+        created: now.to_owned(),
+        profile: profile.clone(),
+        steps,
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------ journal
@@ -764,7 +961,12 @@ pub struct Journal {
 /// Apply every `change` step, journaling the previous state and verifying each change by re-detection.
 /// Apply continues after a failed step (each step is independent); `on_entry` sees each entry as it is recorded
 /// so callers can persist the journal incrementally.
-pub fn apply(backend: &mut dyn Backend, plan: &Plan, journal: &mut Journal, mut on_entry: impl FnMut(&Journal)) {
+pub fn apply(
+    backend: &mut dyn Backend,
+    plan: &Plan,
+    journal: &mut Journal,
+    mut on_entry: impl FnMut(&Journal),
+) {
     journal.schema = 1;
     journal.target = Some(plan.target);
     for step in plan.steps.iter().filter(|s| s.action == "change") {
@@ -781,7 +983,9 @@ pub fn apply(backend: &mut dyn Backend, plan: &Plan, journal: &mut Journal, mut 
             on_entry(journal);
             continue;
         }
-        let before = backend.detect(&step.op).unwrap_or_else(|_| step.before.clone());
+        let before = backend
+            .detect(&step.op)
+            .unwrap_or_else(|_| step.before.clone());
         let mut entry = JournalEntry {
             tweak: step.tweak.clone(),
             op: step.op.clone(),
@@ -832,10 +1036,21 @@ pub struct UndoReport {
 
 /// Replay the journal backwards, restoring each applied (or unverified) change to its previous state.
 pub fn undo(backend: &mut dyn Backend, journal: &mut Journal) -> UndoReport {
-    let mut report = UndoReport { restored: 0, skipped_irreversible: Vec::new(), errors: Vec::new() };
-    for e in journal.entries.iter().rev().filter(|e| e.result != "failed") {
+    let mut report = UndoReport {
+        restored: 0,
+        skipped_irreversible: Vec::new(),
+        errors: Vec::new(),
+    };
+    for e in journal
+        .entries
+        .iter()
+        .rev()
+        .filter(|e| e.result != "failed")
+    {
         if !e.reversible {
-            report.skipped_irreversible.push(format!("{}: {:?}", e.tweak, e.op));
+            report
+                .skipped_irreversible
+                .push(format!("{}: {:?}", e.tweak, e.op));
             continue;
         }
         match backend.restore(&e.op, &e.before) {
@@ -874,27 +1089,67 @@ impl Backend for MemoryBackend {
     }
     fn detect(&mut self, op: &Op) -> std::io::Result<State> {
         Ok(match op {
-            Op::RegSet { hive, key, name, .. } | Op::RegDeleteValue { hive, key, name } => {
-                self.values.get(&(*hive, lc(key), lc(name))).map_or(State::Absent, |d| State::Value { data: d.clone() })
+            Op::RegSet {
+                hive, key, name, ..
             }
+            | Op::RegDeleteValue { hive, key, name } => self
+                .values
+                .get(&(*hive, lc(key), lc(name)))
+                .map_or(State::Absent, |d| State::Value { data: d.clone() }),
             Op::RegDeleteKey { hive, key } => {
-                if self.keys.contains(&(*hive, lc(key))) { State::KeyPresent } else { State::Absent }
+                if self.keys.contains(&(*hive, lc(key))) {
+                    State::KeyPresent
+                } else {
+                    State::Absent
+                }
             }
             Op::AppxRemove { family } => {
-                let full: Vec<String> = self.packages.iter().filter(|p| starts_with_ci(p, &format!("{family}_"))).cloned().collect();
-                if full.is_empty() { State::Absent } else { State::Packages { full_names: full } }
+                let full: Vec<String> = self
+                    .packages
+                    .iter()
+                    .filter(|p| starts_with_ci(p, &format!("{family}_")))
+                    .cloned()
+                    .collect();
+                if full.is_empty() {
+                    State::Absent
+                } else {
+                    State::Packages { full_names: full }
+                }
             }
-            Op::ServiceStart { name, .. } => self.services.get(&lc(name)).map_or(State::Absent, |s| State::Start { start: *s }),
-            Op::TaskDisable { path } => self.tasks.get(&lc(path)).map_or(State::Absent, |e| State::Task { enabled: *e }),
-            Op::CapabilityRemove { name } => State::Installed { installed: self.capabilities.contains(name) },
-            Op::Feature { name, .. } => State::Feature { state: *self.features.get(name).unwrap_or(&FeatureState::Disabled) },
-            Op::FileRemove { path } => if self.files.contains(&lc(path)) { State::FilePresent } else { State::Absent },
-            Op::PowerScheme { .. } => State::Power { guid: self.power.clone() },
+            Op::ServiceStart { name, .. } => self
+                .services
+                .get(&lc(name))
+                .map_or(State::Absent, |s| State::Start { start: *s }),
+            Op::TaskDisable { path } => self
+                .tasks
+                .get(&lc(path))
+                .map_or(State::Absent, |e| State::Task { enabled: *e }),
+            Op::CapabilityRemove { name } => State::Installed {
+                installed: self.capabilities.contains(name),
+            },
+            Op::Feature { name, .. } => State::Feature {
+                state: *self.features.get(name).unwrap_or(&FeatureState::Disabled),
+            },
+            Op::FileRemove { path } => {
+                if self.files.contains(&lc(path)) {
+                    State::FilePresent
+                } else {
+                    State::Absent
+                }
+            }
+            Op::PowerScheme { .. } => State::Power {
+                guid: self.power.clone(),
+            },
         })
     }
     fn apply(&mut self, op: &Op) -> std::io::Result<()> {
         match op {
-            Op::RegSet { hive, key, name, data } => {
+            Op::RegSet {
+                hive,
+                key,
+                name,
+                data,
+            } => {
                 self.values.insert((*hive, lc(key), lc(name)), data.clone());
             }
             Op::RegDeleteValue { hive, key, name } => {
@@ -903,7 +1158,9 @@ impl Backend for MemoryBackend {
             Op::RegDeleteKey { hive, key } => {
                 self.keys.remove(&(*hive, lc(key)));
             }
-            Op::AppxRemove { family } => self.packages.retain(|p| !starts_with_ci(p, &format!("{family}_"))),
+            Op::AppxRemove { family } => self
+                .packages
+                .retain(|p| !starts_with_ci(p, &format!("{family}_"))),
             Op::ServiceStart { name, start } => {
                 self.services.insert(lc(name), *start);
             }
@@ -925,16 +1182,30 @@ impl Backend for MemoryBackend {
     }
     fn restore(&mut self, op: &Op, before: &State) -> std::io::Result<()> {
         match (op, before) {
-            (Op::RegSet { hive, key, name, .. } | Op::RegDeleteValue { hive, key, name }, State::Absent) => {
+            (
+                Op::RegSet {
+                    hive, key, name, ..
+                }
+                | Op::RegDeleteValue { hive, key, name },
+                State::Absent,
+            ) => {
                 self.values.remove(&(*hive, lc(key), lc(name)));
             }
-            (Op::RegSet { hive, key, name, .. } | Op::RegDeleteValue { hive, key, name }, State::Value { data }) => {
+            (
+                Op::RegSet {
+                    hive, key, name, ..
+                }
+                | Op::RegDeleteValue { hive, key, name },
+                State::Value { data },
+            ) => {
                 self.values.insert((*hive, lc(key), lc(name)), data.clone());
             }
             (Op::RegDeleteKey { hive, key }, State::KeyPresent) => {
                 self.keys.insert((*hive, lc(key)));
             }
-            (Op::AppxRemove { .. }, State::Packages { full_names }) => self.packages.extend(full_names.iter().cloned()),
+            (Op::AppxRemove { .. }, State::Packages { full_names }) => {
+                self.packages.extend(full_names.iter().cloned())
+            }
             (Op::ServiceStart { name, .. }, State::Start { start }) => {
                 self.services.insert(lc(name), *start);
             }
@@ -946,7 +1217,11 @@ impl Backend for MemoryBackend {
             }
             (Op::PowerScheme { .. }, State::Power { guid }) => self.power.clone_from(guid),
             (_, State::Absent) => {}
-            (op, s) => return Err(std::io::Error::other(format!("cannot restore {op:?} to {s:?}"))),
+            (op, s) => {
+                return Err(std::io::Error::other(format!(
+                    "cannot restore {op:?} to {s:?}"
+                )));
+            }
         }
         Ok(())
     }
@@ -960,9 +1235,9 @@ pub fn touched_keys(plan: &Plan) -> Vec<(RegHive, String)> {
         .iter()
         .filter(|s| s.action == "change")
         .filter_map(|s| match &s.op {
-            Op::RegSet { hive, key, .. } | Op::RegDeleteValue { hive, key, .. } | Op::RegDeleteKey { hive, key } => {
-                Some((*hive, key.clone()))
-            }
+            Op::RegSet { hive, key, .. }
+            | Op::RegDeleteValue { hive, key, .. }
+            | Op::RegDeleteKey { hive, key } => Some((*hive, key.clone())),
             _ => None,
         })
         .collect();
@@ -979,7 +1254,9 @@ pub fn offline_location(hive: RegHive, key: &str) -> Result<(&'static str, Strin
     match hive {
         RegHive::User => Ok((r"Users\Default\NTUSER.DAT", key.to_owned())),
         RegHive::Machine => {
-            let (root, rest) = key.split_once('\\').ok_or_else(|| format!("bad machine key {key}"))?;
+            let (root, rest) = key
+                .split_once('\\')
+                .ok_or_else(|| format!("bad machine key {key}"))?;
             if root.eq_ignore_ascii_case("SOFTWARE") {
                 Ok((r"Windows\System32\config\SOFTWARE", rest.to_owned()))
             } else if root.eq_ignore_ascii_case("SYSTEM") {

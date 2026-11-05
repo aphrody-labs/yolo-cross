@@ -11,8 +11,11 @@ use std::{ffi::c_void, io, sync::OnceLock};
 use libloading::Library;
 use windows::core::{HSTRING, PCWSTR};
 
-const DISM_ONLINE_IMAGE: PCWSTR = PCWSTR(windows::core::w!("DISM_{53BFAE52-B167-4E2F-A258-0A37B57FF845}").as_ptr());
+const DISM_ONLINE_IMAGE: PCWSTR =
+    PCWSTR(windows::core::w!("DISM_{53BFAE52-B167-4E2F-A258-0A37B57FF845}").as_ptr());
 
+// Mirrors the Win32 type name used by DismAPI.h.
+#[allow(clippy::upper_case_acronyms)]
 type HRESULT = i32;
 type DismSession = u32;
 type DismProgress = Option<unsafe extern "system" fn(u32, u32, *mut c_void)>;
@@ -22,8 +25,19 @@ type FnInitialize = unsafe extern "system" fn(u32, PCWSTR, PCWSTR) -> HRESULT;
 type FnShutdown = unsafe extern "system" fn() -> HRESULT;
 type FnOpenSession = unsafe extern "system" fn(PCWSTR, PCWSTR, PCWSTR, *mut DismSession) -> HRESULT;
 type FnCloseSession = unsafe extern "system" fn(DismSession) -> HRESULT;
-type FnMountImage = unsafe extern "system" fn(PCWSTR, PCWSTR, u32, PCWSTR, i32, u32, *const c_void, DismProgress, *mut c_void) -> HRESULT;
-type FnUnmountImage = unsafe extern "system" fn(PCWSTR, u32, *const c_void, DismProgress, *mut c_void) -> HRESULT;
+type FnMountImage = unsafe extern "system" fn(
+    PCWSTR,
+    PCWSTR,
+    u32,
+    PCWSTR,
+    i32,
+    u32,
+    *const c_void,
+    DismProgress,
+    *mut c_void,
+) -> HRESULT;
+type FnUnmountImage =
+    unsafe extern "system" fn(PCWSTR, u32, *const c_void, DismProgress, *mut c_void) -> HRESULT;
 type FnRemoveProvisionedAppx = unsafe extern "system" fn(DismSession, PCWSTR) -> HRESULT;
 /// Log level passed to `DismInitialize`.
 const DISM_LOG_ERRORS_WARNINGS_INFO: u32 = 2;
@@ -52,9 +66,14 @@ fn api() -> io::Result<&'static Api> {
     API.get_or_init(|| {
         // SAFETY: loading a system DLL and resolving documented exports.
         unsafe {
-            let lib = Library::new("dismapi.dll").map_err(|e| io::Error::other(format!("load dismapi.dll: {e}")))?;
+            let lib = Library::new("dismapi.dll")
+                .map_err(|e| io::Error::other(format!("load dismapi.dll: {e}")))?;
             macro_rules! sym {
-                ($t:ty, $n:literal) => {{ *lib.get::<$t>($n).map_err(|e| io::Error::other(format!("{}: {e}", String::from_utf8_lossy($n))))? }};
+                ($t:ty, $n:literal) => {{
+                    *lib.get::<$t>($n).map_err(|e| {
+                        io::Error::other(format!("{}: {e}", String::from_utf8_lossy($n)))
+                    })?
+                }};
             }
             let api = Api {
                 initialize: sym!(FnInitialize, b"DismInitialize"),
@@ -63,7 +82,10 @@ fn api() -> io::Result<&'static Api> {
                 close_session: sym!(FnCloseSession, b"DismCloseSession"),
                 mount_image: sym!(FnMountImage, b"DismMountImage"),
                 unmount_image: sym!(FnUnmountImage, b"DismUnmountImage"),
-                remove_provisioned_appx: sym!(FnRemoveProvisionedAppx, b"DismRemoveProvisionedAppxPackage"),
+                remove_provisioned_appx: sym!(
+                    FnRemoveProvisionedAppx,
+                    b"DismRemoveProvisionedAppxPackage"
+                ),
                 _lib: lib,
             };
             Ok(api)
@@ -77,7 +99,10 @@ fn check(hr: HRESULT, context: &str) -> io::Result<()> {
     if hr >= 0 {
         Ok(())
     } else {
-        Err(io::Error::other(format!("{context}: HRESULT 0x{:08X}", hr as u32)))
+        Err(io::Error::other(format!(
+            "{context}: HRESULT 0x{:08X}",
+            hr as u32
+        )))
     }
 }
 
@@ -91,7 +116,16 @@ impl Dism {
     pub fn initialize() -> io::Result<Self> {
         let api = api()?;
         // SAFETY: documented entry point; null log and scratch paths use the defaults.
-        check(unsafe { (api.initialize)(DISM_LOG_ERRORS_WARNINGS_INFO, PCWSTR::null(), PCWSTR::null()) }, "DismInitialize")?;
+        check(
+            unsafe {
+                (api.initialize)(
+                    DISM_LOG_ERRORS_WARNINGS_INFO,
+                    PCWSTR::null(),
+                    PCWSTR::null(),
+                )
+            },
+            "DismInitialize",
+        )?;
         Ok(Self { _private: () })
     }
 
@@ -122,9 +156,24 @@ impl Dism {
     pub fn unmount(&self, mount_dir: &str, commit: bool) -> io::Result<()> {
         let api = api()?;
         let dir = HSTRING::from(mount_dir);
-        let flags = if commit { DISM_COMMIT_IMAGE } else { DISM_DISCARD_IMAGE };
+        let flags = if commit {
+            DISM_COMMIT_IMAGE
+        } else {
+            DISM_DISCARD_IMAGE
+        };
         // SAFETY: valid path; no progress callback.
-        check(unsafe { (api.unmount_image)(PCWSTR(dir.as_ptr()), flags, std::ptr::null(), None, std::ptr::null_mut()) }, "DismUnmountImage")
+        check(
+            unsafe {
+                (api.unmount_image)(
+                    PCWSTR(dir.as_ptr()),
+                    flags,
+                    std::ptr::null(),
+                    None,
+                    std::ptr::null_mut(),
+                )
+            },
+            "DismUnmountImage",
+        )
     }
 
     /// Open a session on the online system.
@@ -142,8 +191,14 @@ impl Dism {
         let api = api()?;
         let mut session: DismSession = 0;
         // SAFETY: default Windows directory and system drive.
-        check(unsafe { (api.open_session)(image, PCWSTR::null(), PCWSTR::null(), &mut session) }, "DismOpenSession")?;
-        Ok(Session { session, _dism: self })
+        check(
+            unsafe { (api.open_session)(image, PCWSTR::null(), PCWSTR::null(), &mut session) },
+            "DismOpenSession",
+        )?;
+        Ok(Session {
+            session,
+            _dism: self,
+        })
     }
 }
 
@@ -168,7 +223,10 @@ impl Session<'_> {
         let api = api()?;
         let name = HSTRING::from(package_name);
         // SAFETY: open session, valid name.
-        check(unsafe { (api.remove_provisioned_appx)(self.session, PCWSTR(name.as_ptr())) }, "DismRemoveProvisionedAppxPackage")
+        check(
+            unsafe { (api.remove_provisioned_appx)(self.session, PCWSTR(name.as_ptr())) },
+            "DismRemoveProvisionedAppxPackage",
+        )
     }
 }
 

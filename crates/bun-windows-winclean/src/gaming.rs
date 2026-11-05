@@ -236,8 +236,8 @@ mod backend {
 mod backend {
     //! X11 backend over `xdotool` (XTEST) and ImageMagick `import`; works on Xvfb.
     use super::*;
-    use yolo_process::NoWindow as _;
     use std::process::Command;
+    use yolo_process::NoWindow as _;
 
     pub(super) const NAME: &str = "x11";
 

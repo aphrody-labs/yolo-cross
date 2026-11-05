@@ -253,7 +253,7 @@ impl std::str::FromStr for ImagePlatform {
                 };
                 (os, arch, variant)
             } else {
-                eyre::bail!("invalid platform specified")
+                eyre::bail!("invalid platform specified");
             };
             Ok(ImagePlatform {
                 architecture: Architecture::deserialize(arch)?,
@@ -358,7 +358,7 @@ impl Os {
                 (_, "linux") => Os::Linux,
                 (_, "windows") => Os::Windows,
                 (abi, system) => {
-                    eyre::bail!("unsupported os in target, abi: {abi:?}, system: {system:?} ")
+                    eyre::bail!("unsupported os in target, abi: {abi:?}, system: {system:?} ");
                 }
             },
         )

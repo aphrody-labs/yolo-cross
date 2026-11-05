@@ -314,11 +314,12 @@ pub fn build_docker_image(
                 .run(msg_info, false)
                 .engine_warning(engine)
                 .buildkit_warning();
-            if gha && targets.len() > 1 {
-                if let Err(e) = &result {
-                    // TODO: Determine what instruction errored, and place warning on that line with appropriate warning
-                    gha_error(&format!("file=docker/{dockerfile},title=Build failed::{e}"));
-                }
+            if gha
+                && targets.len() > 1
+                && let Err(e) = &result
+            {
+                // TODO: Determine what instruction errored, and place warning on that line with appropriate warning
+                gha_error(&format!("file=docker/{dockerfile},title=Build failed::{e}"));
             }
             results.push(
                 result
@@ -406,7 +407,7 @@ pub fn determine_image_name(
                 .strip_prefix('v')
                 .expect("tag name should start with v");
             if version != tag_version {
-                eyre::bail!("git tag does not match package version.")
+                eyre::bail!("git tag does not match package version.");
             }
             tags.push(target.image_name(repository, version));
             // Check for unstable releases, tag stable releases as `latest`
@@ -431,7 +432,9 @@ pub fn determine_image_name(
                 tags.push(target.image_name(repository, "edge"));
             }
         }
-        _ => eyre::bail!("no valid choice to pick for image name"),
+        _ => {
+            eyre::bail!("no valid choice to pick for image name");
+        }
     }
     Ok(tags)
 }

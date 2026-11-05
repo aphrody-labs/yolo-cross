@@ -15,6 +15,11 @@ description = "Bun OS Steam owner: VDF text/binary parser and writer, install an
 [lib]
 name = "bun_steam"
 
+# `emulator` needs aphrody-nie-net, owned by yolo-re and not a dependency of this workspace;
+# the monorepo test and clippy gates enable every other feature.
+[package.metadata.yolo]
+external-features = ["emulator"]
+
 
 [features]
 default = []

@@ -42,13 +42,13 @@ impl<'a> Clang<'a> {
             .or_else(|| env::current_dir().ok())
             .unwrap();
         let mut targets = cargo.target.clone();
-        if targets.is_empty() {
-            if let Some(build_target) = default_build_target_from_config(&workdir)? {
-                // if no target is specified, use the default build target
-                // Note that this is required, otherwise it may fail with link errors
-                cmd.arg("--target").arg(&build_target);
-                targets.push(build_target);
-            }
+        if targets.is_empty()
+            && let Some(build_target) = default_build_target_from_config(&workdir)?
+        {
+            // if no target is specified, use the default build target
+            // Note that this is required, otherwise it may fail with link errors
+            cmd.arg("--target").arg(&build_target);
+            targets.push(build_target);
         }
 
         for target in &targets {

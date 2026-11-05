@@ -26,12 +26,16 @@ pub fn call(tool: &str, args: &Value) -> Option<Result<Value, SubsystemError>> {
     let result = match tool {
         "wmi_query" => {
             let Some(query) = args.get("query").and_then(Value::as_str) else {
-                return Some(Err(SubsystemError::InvalidArguments("wmi_query requires query".into())));
+                return Some(Err(SubsystemError::InvalidArguments(
+                    "wmi_query requires query".into(),
+                )));
             };
             wmi::query(
                 args.get("namespace").and_then(Value::as_str),
                 query,
-                args.get("limit").and_then(Value::as_u64).map(|n| n as usize),
+                args.get("limit")
+                    .and_then(Value::as_u64)
+                    .map(|n| n as usize),
             )
         }
         "com_invoke" => com::invoke(args),

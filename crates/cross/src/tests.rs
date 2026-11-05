@@ -139,16 +139,33 @@ release: {version}
 
 #[test]
 fn check_newlines() -> crate::Result<()> {
-    for file in walk_dir(get_cargo_workspace(), &[".git", "target"], |_| true) {
+    // Monorepo members keep their own conventions: submodules (manylinux-cross, rust-musl-cross),
+    // absorbed upstream crates (cargo-xwin, cargo-zigbuild), generated snapshots (schemas/, winclean tools.json, hashed by its migration
+    // ledger) and checked-in .NET restore output (obj/).
+    const SKIP: &[&str] = &[
+        ".git",
+        "target",
+        "cargo-xwin",
+        "cargo-zigbuild",
+        "manylinux-cross",
+        "rust-musl-cross",
+        "schemas",
+        "tools.json",
+        "obj",
+    ];
+    for file in walk_dir(get_cargo_workspace(), SKIP, |_| true) {
         let file = file?;
         if !file.file_type().is_none_or(|f| f.is_file()) {
             continue;
         }
         eprintln!("File: {:?}", file.path());
+        let contents = crate::file::read(file.path()).unwrap_or_else(|_| String::from("\n"));
+        // Binary files (wasm modules, images) that happen to decode as UTF-8 carry NUL bytes.
+        if contents.contains('\0') {
+            continue;
+        }
         assert!(
-            crate::file::read(file.path())
-                .unwrap_or_else(|_| String::from("\n"))
-                .ends_with('\n'),
+            contents.ends_with('\n'),
             "file {:?} does not end with a newline",
             file.path().to_utf8()?
         );

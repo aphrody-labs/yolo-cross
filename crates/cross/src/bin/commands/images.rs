@@ -237,7 +237,7 @@ fn get_image_target(
 
     let target = command.run_and_get_stdout(msg_info)?;
     if target.trim().is_empty() {
-        eyre::bail!("cannot get target for image {}", image)
+        eyre::bail!("cannot get target for image {}", image);
     }
     Ok(target.trim().to_string())
 }

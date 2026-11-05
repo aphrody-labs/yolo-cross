@@ -9,8 +9,9 @@ use crate::util::{get_cargo_workspace, get_matrix};
 pub struct Codegen {}
 
 pub fn codegen(Codegen { .. }: Codegen) -> cross::Result<()> {
-    let path = get_cargo_workspace().join("src/docker/provided_images.rs");
-    std::fs::write(path, docker_images()).wrap_err("when writing src/docker/provided_images.rs")?;
+    let path = get_cargo_workspace().join("crates/cross/src/docker/provided_images.rs");
+    std::fs::write(path, docker_images())
+        .wrap_err("when writing crates/cross/src/docker/provided_images.rs")?;
     Ok(())
 }
 
@@ -36,7 +37,7 @@ pub static PROVIDED_IMAGES: &[ProvidedImage] = &["#,
             sub: {sub}
         }},"#,
             name = image_target.target.clone(),
-            platform = &image_target
+            platform = image_target
                 .platforms()
                 .iter()
                 .map(|p| {
@@ -65,7 +66,8 @@ pub static PROVIDED_IMAGES: &[ProvidedImage] = &["#,
 #[cfg(test)]
 #[test]
 pub fn ensure_correct_codegen() -> cross::Result<()> {
-    let provided_images = crate::util::get_cargo_workspace().join("src/docker/provided_images.rs");
+    let provided_images =
+        crate::util::get_cargo_workspace().join("crates/cross/src/docker/provided_images.rs");
     let content = cross::file::read(provided_images)?;
     assert_eq!(content.replace("\r\n", "\n"), docker_images());
     Ok(())

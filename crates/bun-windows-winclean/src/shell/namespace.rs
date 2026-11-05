@@ -9,7 +9,11 @@
 //! (`SHOpenFolderAndSelectItems`). This is what COSMIC Files, `nu_plugin_windows` and the `win`
 //! CLI call so they see and drive the same namespace Explorer does.
 
-use std::{ffi::c_void, io, time::{Duration, Instant}};
+use std::{
+    ffi::c_void,
+    io,
+    time::{Duration, Instant},
+};
 
 use base64::Engine as _;
 use serde_json::{Map, Value, json};
@@ -17,7 +21,7 @@ use windows::{
     Win32::{
         Foundation::{HWND, LPARAM, PROPERTYKEY, SIZE},
         Graphics::Gdi::{
-            BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, DeleteObject, GetDC,
+            BI_RGB, BITMAP, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, DeleteObject, GetDC,
             GetDIBits, GetObjectW, HGDIOBJ, ReleaseDC,
         },
         Storage::FileSystem::{
@@ -32,20 +36,22 @@ use windows::{
         },
         UI::{
             Shell::{
-                ASSOC_FILTER_NONE, ASSOC_FILTER_RECOMMENDED, AL_EFFECTIVE, AT_FILEEXTENSION,
+                AL_EFFECTIVE, ASSOC_FILTER_NONE, ASSOC_FILTER_RECOMMENDED, AT_FILEEXTENSION,
                 AT_URLPROTOCOL, ApplicationAssociationRegistration, BHID_DataObject,
                 BHID_EnumItems, BHID_SFUIObject, CMF_EXTENDEDVERBS, CMF_NORMAL,
-                CMINVOKECOMMANDINFO, CMINVOKECOMMANDINFOEX, Common::ITEMIDLIST,
+                CMINVOKECOMMANDINFO, CMINVOKECOMMANDINFOEX,
+                Common::ITEMIDLIST,
                 FILEOPERATION_FLAGS, FOF_ALLOWUNDO, FOF_NOCONFIRMATION, FOF_NOCONFIRMMKDIR,
                 FOF_NOERRORUI, FOF_SILENT, FOFX_RECYCLEONDELETE, FOLDERID_RecycleBinFolder,
                 FileOperation, GCS_VERBW, IApplicationAssociationRegistration, IAssocHandler,
-                IContextMenu, IEnumAssocHandlers, IEnumShellItems, IFileOperation, IKnownFolderManager,
-                IShellItem, IShellItem2, IShellItemImageFactory, ILFree, KF_CATEGORY_COMMON,
-                KF_CATEGORY_FIXED, KF_CATEGORY_PERUSER, KF_CATEGORY_VIRTUAL, KF_FLAG_DEFAULT,
-                KNOWNFOLDER_DEFINITION, KnownFolderManager, PropertiesSystem::{GPS_DEFAULT, IPropertyStore, PSGetNameFromPropertyKey},
-                SHAssocEnumHandlers, SHCreateItemFromParsingName, SHEmptyRecycleBinW,
-                SHERB_NOCONFIRMATION, SHERB_NOPROGRESSUI, SHERB_NOSOUND, SHGetKnownFolderItem,
-                SHObjectProperties, SHOP_FILEPATH, SHOpenFolderAndSelectItems, SHParseDisplayName,
+                IContextMenu, IEnumAssocHandlers, IEnumShellItems, IFileOperation,
+                IKnownFolderManager, ILFree, IShellItem, IShellItem2, IShellItemImageFactory,
+                KF_CATEGORY_COMMON, KF_CATEGORY_FIXED, KF_CATEGORY_PERUSER, KF_CATEGORY_VIRTUAL,
+                KF_FLAG_DEFAULT, KNOWNFOLDER_DEFINITION, KnownFolderManager,
+                PropertiesSystem::{GPS_DEFAULT, IPropertyStore, PSGetNameFromPropertyKey},
+                SHAssocEnumHandlers, SHCreateItemFromParsingName, SHERB_NOCONFIRMATION,
+                SHERB_NOPROGRESSUI, SHERB_NOSOUND, SHEmptyRecycleBinW, SHGetKnownFolderItem,
+                SHOP_FILEPATH, SHObjectProperties, SHOpenFolderAndSelectItems, SHParseDisplayName,
                 SIGDN, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SIGDN_NORMALDISPLAY,
                 SIIGBF_RESIZETOFIT,
             },
@@ -70,8 +76,14 @@ const CMD_LAST: u32 = 0x7FFF;
 
 /// `PKEY_Recycle_DeletedFrom` / `PKEY_Recycle_DateDeleted` (`{9B174B33-40FF-11D2-A27E-00C04FC30871}`, 2/3).
 const PSGUID_DISPLACED: GUID = GUID::from_u128(0x9b174b33_40ff_11d2_a27e_00c04fc30871);
-const PKEY_DELETED_FROM: PROPERTYKEY = PROPERTYKEY { fmtid: PSGUID_DISPLACED, pid: 2 };
-const PKEY_DATE_DELETED: PROPERTYKEY = PROPERTYKEY { fmtid: PSGUID_DISPLACED, pid: 3 };
+const PKEY_DELETED_FROM: PROPERTYKEY = PROPERTYKEY {
+    fmtid: PSGUID_DISPLACED,
+    pid: 2,
+};
+const PKEY_DATE_DELETED: PROPERTYKEY = PROPERTYKEY {
+    fmtid: PSGUID_DISPLACED,
+    pid: 3,
+};
 
 fn invalid(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidInput, message.into())
@@ -111,7 +123,10 @@ fn item_json(item: &IShellItem) -> Value {
 fn strings(args: &Value, key: &str) -> Vec<String> {
     match args.get(key) {
         Some(Value::String(one)) => vec![one.clone()],
-        Some(Value::Array(many)) => many.iter().filter_map(|v| v.as_str().map(str::to_owned)).collect(),
+        Some(Value::Array(many)) => many
+            .iter()
+            .filter_map(|v| v.as_str().map(str::to_owned))
+            .collect(),
         _ => Vec::new(),
     }
 }
@@ -167,19 +182,23 @@ fn pump_while_windows(limit: Duration) {
 pub fn known_folders() -> io::Result<Value> {
     let _com = ComScope::enter(COINIT_APARTMENTTHREADED)?;
     // SAFETY: in-process known-folder manager.
-    let manager: IKnownFolderManager = unsafe { CoCreateInstance(&KnownFolderManager, None, CLSCTX_INPROC_SERVER) }
-        .map_err(|e| hresult_error(&e, "create KnownFolderManager"))?;
+    let manager: IKnownFolderManager =
+        unsafe { CoCreateInstance(&KnownFolderManager, None, CLSCTX_INPROC_SERVER) }
+            .map_err(|e| hresult_error(&e, "create KnownFolderManager"))?;
     let mut ids: *mut GUID = std::ptr::null_mut();
     let mut count = 0u32;
     // SAFETY: returns a CoTaskMem array of `count` GUIDs.
-    unsafe { manager.GetFolderIds(&mut ids, &mut count) }.map_err(|e| hresult_error(&e, "GetFolderIds"))?;
+    unsafe { manager.GetFolderIds(&mut ids, &mut count) }
+        .map_err(|e| hresult_error(&e, "GetFolderIds"))?;
     // SAFETY: `ids` holds `count` GUIDs until freed below.
     let guids: Vec<GUID> = unsafe { std::slice::from_raw_parts(ids, count as usize) }.to_vec();
     unsafe { CoTaskMemFree(Some(ids as *const c_void)) };
     let mut folders = Vec::with_capacity(guids.len());
     for id in guids {
         // SAFETY: per-folder lookups; failures skip the folder.
-        let Ok(folder) = (unsafe { manager.GetFolder(&id) }) else { continue };
+        let Ok(folder) = (unsafe { manager.GetFolder(&id) }) else {
+            continue;
+        };
         let mut definition = KNOWNFOLDER_DEFINITION::default();
         if unsafe { folder.GetFolderDefinition(&mut definition) }.is_err() {
             continue;
@@ -202,7 +221,12 @@ pub fn known_folders() -> io::Result<Value> {
             "localizedName": take(definition.pszLocalizedName),
         }));
         // The remaining definition strings are freed here (FreeKnownFolderDefinitionFields is inline).
-        for text in [definition.pszDescription, definition.pszTooltip, definition.pszIcon, definition.pszSecurity] {
+        for text in [
+            definition.pszDescription,
+            definition.pszTooltip,
+            definition.pszIcon,
+            definition.pszSecurity,
+        ] {
             let _ = take(text);
         }
     }
@@ -216,7 +240,10 @@ pub fn drives() -> io::Result<Value> {
     // SAFETY: fills NUL-separated root paths.
     let length = unsafe { GetLogicalDriveStringsW(Some(&mut buffer)) } as usize;
     let mut out = Vec::new();
-    for root in String::from_utf16_lossy(&buffer[..length.min(buffer.len())]).split('\0').filter(|s| !s.is_empty()) {
+    for root in String::from_utf16_lossy(&buffer[..length.min(buffer.len())])
+        .split('\0')
+        .filter(|s| !s.is_empty())
+    {
         let wide_root = wide(root);
         // SAFETY: plain volume queries on a root path.
         let kind = match unsafe { GetDriveTypeW(pcwstr(&wide_root)) } {
@@ -231,11 +258,21 @@ pub fn drives() -> io::Result<Value> {
         let mut fs = vec![0u16; 261];
         let mut serial = 0u32;
         let has_volume = unsafe {
-            GetVolumeInformationW(pcwstr(&wide_root), Some(&mut label), Some(&mut serial), None, None, Some(&mut fs))
+            GetVolumeInformationW(
+                pcwstr(&wide_root),
+                Some(&mut label),
+                Some(&mut serial),
+                None,
+                None,
+                Some(&mut fs),
+            )
         }
         .is_ok();
         let (mut free, mut total) = (0u64, 0u64);
-        let has_space = unsafe { GetDiskFreeSpaceExW(pcwstr(&wide_root), Some(&mut free), Some(&mut total), None) }.is_ok();
+        let has_space = unsafe {
+            GetDiskFreeSpaceExW(pcwstr(&wide_root), Some(&mut free), Some(&mut total), None)
+        }
+        .is_ok();
         out.push(json!({
             "root": root,
             "type": kind,
@@ -256,25 +293,34 @@ pub fn drives() -> io::Result<Value> {
 /// conflict UI when `ui` is true).
 pub fn file_operation(args: &Value) -> io::Result<Value> {
     let _com = ComScope::enter(COINIT_APARTMENTTHREADED)?;
-    let op = args.get("op").and_then(Value::as_str).ok_or_else(|| invalid("op is required"))?;
+    let op = args
+        .get("op")
+        .and_then(Value::as_str)
+        .ok_or_else(|| invalid("op is required"))?;
     let items = strings(args, "items");
     let ui = args.get("ui").and_then(Value::as_bool).unwrap_or(false);
     // SAFETY: in-process file operation object.
-    let operation: IFileOperation = unsafe { CoCreateInstance(&FileOperation, None, CLSCTX_INPROC_SERVER) }
-        .map_err(|e| hresult_error(&e, "create FileOperation"))?;
-    let mut flags = FOF_ALLOWUNDO.0 as u32 | FOF_NOCONFIRMMKDIR.0 as u32;
+    let operation: IFileOperation =
+        unsafe { CoCreateInstance(&FileOperation, None, CLSCTX_INPROC_SERVER) }
+            .map_err(|e| hresult_error(&e, "create FileOperation"))?;
+    let mut flags = FOF_ALLOWUNDO.0 | FOF_NOCONFIRMMKDIR.0;
     if !ui {
-        flags |= FOF_NOCONFIRMATION.0 as u32 | FOF_SILENT.0 as u32 | FOF_NOERRORUI.0 as u32;
+        flags |= FOF_NOCONFIRMATION.0 | FOF_SILENT.0 | FOF_NOERRORUI.0;
     }
     match op {
-        "recycle" => flags |= FOFX_RECYCLEONDELETE.0 as u32,
-        "delete" => flags &= !(FOF_ALLOWUNDO.0 as u32),
+        "recycle" => flags |= FOFX_RECYCLEONDELETE.0,
+        "delete" => flags &= !FOF_ALLOWUNDO.0,
         _ => {}
     }
     // SAFETY: configures the pending operation.
-    unsafe { operation.SetOperationFlags(FILEOPERATION_FLAGS(flags)) }.map_err(|e| hresult_error(&e, "SetOperationFlags"))?;
+    unsafe { operation.SetOperationFlags(FILEOPERATION_FLAGS(flags)) }
+        .map_err(|e| hresult_error(&e, "SetOperationFlags"))?;
     let destination = || -> io::Result<IShellItem> {
-        item(args.get("destination").and_then(Value::as_str).ok_or_else(|| invalid("destination is required"))?)
+        item(
+            args.get("destination")
+                .and_then(Value::as_str)
+                .ok_or_else(|| invalid("destination is required"))?,
+        )
     };
     let new_name = args.get("newName").and_then(Value::as_str).map(wide);
     let new_name_ptr = new_name.as_ref().map_or(PCWSTR::null(), |n| pcwstr(n));
@@ -298,11 +344,15 @@ pub fn file_operation(args: &Value) -> io::Result<Value> {
                     return Err(invalid("newName is required"));
                 }
                 let source = item(items.first().ok_or_else(|| invalid("items is required"))?)?;
-                operation.RenameItem(&source, new_name_ptr, None).map_err(|e| hresult_error(&e, "rename"))?;
+                operation
+                    .RenameItem(&source, new_name_ptr, None)
+                    .map_err(|e| hresult_error(&e, "rename"))?;
             }
             "delete" | "recycle" => {
                 for source in &items {
-                    operation.DeleteItem(&item(source)?, None).map_err(|e| hresult_error(&e, op))?;
+                    operation
+                        .DeleteItem(&item(source)?, None)
+                        .map_err(|e| hresult_error(&e, op))?;
                 }
             }
             "newFolder" => {
@@ -315,8 +365,13 @@ pub fn file_operation(args: &Value) -> io::Result<Value> {
             }
             other => return Err(invalid(format!("unknown op {other}"))),
         }
-        operation.PerformOperations().map_err(|e| hresult_error(&e, "PerformOperations"))?;
-        let aborted = operation.GetAnyOperationsAborted().map(|b| b.as_bool()).unwrap_or(false);
+        operation
+            .PerformOperations()
+            .map_err(|e| hresult_error(&e, "PerformOperations"))?;
+        let aborted = operation
+            .GetAnyOperationsAborted()
+            .map(|b| b.as_bool())
+            .unwrap_or(false);
         Ok(json!({ "op": op, "items": items, "aborted": aborted }))
     }
 }
@@ -325,8 +380,9 @@ pub fn file_operation(args: &Value) -> io::Result<Value> {
 
 fn recycle_items() -> io::Result<Vec<IShellItem>> {
     // SAFETY: the Recycle Bin virtual folder and its item enumerator.
-    let bin: IShellItem = unsafe { SHGetKnownFolderItem(&FOLDERID_RecycleBinFolder, KF_FLAG_DEFAULT, None) }
-        .map_err(|e| hresult_error(&e, "open the Recycle Bin"))?;
+    let bin: IShellItem =
+        unsafe { SHGetKnownFolderItem(&FOLDERID_RecycleBinFolder, KF_FLAG_DEFAULT, None) }
+            .map_err(|e| hresult_error(&e, "open the Recycle Bin"))?;
     let enumerator: IEnumShellItems = unsafe { bin.BindToHandler(None, &BHID_EnumItems) }
         .map_err(|e| hresult_error(&e, "enumerate the Recycle Bin"))?;
     let mut out = Vec::new();
@@ -370,7 +426,9 @@ pub fn recycle_bin(args: &Value) -> io::Result<Value> {
         "restore" => {
             let wanted = strings(args, "names");
             if wanted.is_empty() {
-                return Err(invalid("names (display names, original paths or parsing names) is required"));
+                return Err(invalid(
+                    "names (display names, original paths or parsing names) is required",
+                ));
             }
             let mut restored = Vec::new();
             for entry in recycle_items()? {
@@ -387,7 +445,9 @@ pub fn recycle_bin(args: &Value) -> io::Result<Value> {
                         .unwrap_or_default()
                 };
                 let hit = wanted.iter().any(|w| {
-                    w.eq_ignore_ascii_case(&display) || w.eq_ignore_ascii_case(&parsing) || w.eq_ignore_ascii_case(&original)
+                    w.eq_ignore_ascii_case(&display)
+                        || w.eq_ignore_ascii_case(&parsing)
+                        || w.eq_ignore_ascii_case(&original)
                 });
                 if hit {
                     invoke_menu(&entry, Some("undelete"), None, false)?;
@@ -398,12 +458,26 @@ pub fn recycle_bin(args: &Value) -> io::Result<Value> {
         }
         "empty" => {
             if args.get("confirm").and_then(Value::as_bool) != Some(true) {
-                return Err(invalid("emptying the Recycle Bin is permanent: pass confirm=true"));
+                return Err(invalid(
+                    "emptying the Recycle Bin is permanent: pass confirm=true",
+                ));
             }
             // SAFETY: empties every drive's Recycle Bin without UI.
-            unsafe { SHEmptyRecycleBinW(None, PCWSTR::null(), SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND) }
-                .or_else(|e| if e.code().0 as u32 == 0x8000_FFFF { Ok(()) } else { Err(e) })
-                .map_err(|e| hresult_error(&e, "SHEmptyRecycleBin"))?;
+            unsafe {
+                SHEmptyRecycleBinW(
+                    None,
+                    PCWSTR::null(),
+                    SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND,
+                )
+            }
+            .or_else(|e| {
+                if e.code().0 as u32 == 0x8000_FFFF {
+                    Ok(())
+                } else {
+                    Err(e)
+                }
+            })
+            .map_err(|e| hresult_error(&e, "SHEmptyRecycleBin"))?;
             Ok(json!({ "emptied": true }))
         }
         other => Err(invalid(format!("unknown action {other}"))),
@@ -418,10 +492,23 @@ fn context_menu(item: &IShellItem) -> io::Result<(IContextMenu, HMENU)> {
         .map_err(|e| hresult_error(&e, "get the context menu"))?;
     let hmenu = unsafe { CreatePopupMenu() }.map_err(|e| hresult_error(&e, "CreatePopupMenu"))?;
     // SAFETY: populates `hmenu` with command ids CMD_FIRST..=CMD_LAST.
-    let hr = unsafe { menu.QueryContextMenu(hmenu, 0, CMD_FIRST, CMD_LAST, CMF_NORMAL | CMF_EXTENDEDVERBS) };
+    let hr = unsafe {
+        menu.QueryContextMenu(
+            hmenu,
+            0,
+            CMD_FIRST,
+            CMD_LAST,
+            CMF_NORMAL | CMF_EXTENDEDVERBS,
+        )
+    };
     if hr.is_err() {
-        unsafe { let _ = DestroyMenu(hmenu); }
-        return Err(hresult_error(&windows::core::Error::from(hr), "QueryContextMenu"));
+        unsafe {
+            let _ = DestroyMenu(hmenu);
+        }
+        return Err(hresult_error(
+            &windows::core::Error::from(hr),
+            "QueryContextMenu",
+        ));
     }
     Ok((menu, hmenu))
 }
@@ -472,7 +559,11 @@ fn walk(menu: &IContextMenu, hmenu: HMENU, parent: &str, out: &mut Vec<Value>) {
             continue;
         }
         let label = crate::win32::from_wide(&text).replace('&', "");
-        let full = if parent.is_empty() { label.clone() } else { format!("{parent} > {label}") };
+        let full = if parent.is_empty() {
+            label.clone()
+        } else {
+            format!("{parent} > {label}")
+        };
         if !info.hSubMenu.is_invalid() {
             walk(menu, info.hSubMenu, &full, out);
             continue;
@@ -489,7 +580,12 @@ fn walk(menu: &IContextMenu, hmenu: HMENU, parent: &str, out: &mut Vec<Value>) {
     }
 }
 
-fn invoke_menu(target: &IShellItem, verb: Option<&str>, id: Option<u32>, wait: bool) -> io::Result<Value> {
+fn invoke_menu(
+    target: &IShellItem,
+    verb: Option<&str>,
+    id: Option<u32>,
+    wait: bool,
+) -> io::Result<Value> {
     let (menu, hmenu) = context_menu(target)?;
     let verb_ansi = verb.map(|v| std::ffi::CString::new(v).unwrap_or_default());
     let verb_wide = verb.map(wide);
@@ -511,7 +607,9 @@ fn invoke_menu(target: &IShellItem, verb: Option<&str>, id: Option<u32>, wait: b
             info.lpVerbW = PCWSTR(offset as *const u16);
         }
         _ => {
-            unsafe { let _ = DestroyMenu(hmenu); }
+            unsafe {
+                let _ = DestroyMenu(hmenu);
+            }
             return Err(invalid("verb or id is required"));
         }
     }
@@ -520,7 +618,9 @@ fn invoke_menu(target: &IShellItem, verb: Option<&str>, id: Option<u32>, wait: b
     if wait {
         pump_while_windows(Duration::from_secs(3600));
     }
-    unsafe { let _ = DestroyMenu(hmenu); }
+    unsafe {
+        let _ = DestroyMenu(hmenu);
+    }
     outcome.map_err(|e| hresult_error(&e, "InvokeCommand"))?;
     Ok(json!({ "invoked": verb.map(str::to_owned).or_else(|| id.map(|i| i.to_string())) }))
 }
@@ -536,7 +636,9 @@ pub fn context_menu_tool(args: &Value) -> io::Result<Value> {
             let (menu, hmenu) = context_menu(&target)?;
             let mut verbs = Vec::new();
             walk(&menu, hmenu, "", &mut verbs);
-            unsafe { let _ = DestroyMenu(hmenu); }
+            unsafe {
+                let _ = DestroyMenu(hmenu);
+            }
             Ok(json!({ "path": path, "count": verbs.len(), "verbs": verbs }))
         }
         "invoke" => invoke_menu(
@@ -579,7 +681,9 @@ pub fn properties(args: &Value) -> io::Result<Value> {
                 if unsafe { store.GetAt(index, &mut key) }.is_err() {
                     continue;
                 }
-                let Ok(value) = (unsafe { store.GetValue(&key) }) else { continue };
+                let Ok(value) = (unsafe { store.GetValue(&key) }) else {
+                    continue;
+                };
                 let text = unsafe { PropVariantToStringAlloc(&value) }.ok().map(take);
                 let label = unsafe { PSGetNameFromPropertyKey(&key) }
                     .ok()
@@ -594,9 +698,13 @@ pub fn properties(args: &Value) -> io::Result<Value> {
         "dialog" => {
             let wide_path = wide(&path);
             // SAFETY: opens the Properties sheet in this process.
-            let shown = unsafe { SHObjectProperties(None, SHOP_FILEPATH, pcwstr(&wide_path), PCWSTR::null()) };
+            let shown = unsafe {
+                SHObjectProperties(None, SHOP_FILEPATH, pcwstr(&wide_path), PCWSTR::null())
+            };
             if !shown.as_bool() {
-                return Err(io::Error::other(format!("SHObjectProperties failed for {path}")));
+                return Err(io::Error::other(format!(
+                    "SHObjectProperties failed for {path}"
+                )));
             }
             pump_while_windows(Duration::from_secs(3600));
             Ok(json!({ "path": path, "closed": true }))
@@ -612,7 +720,11 @@ pub fn properties(args: &Value) -> io::Result<Value> {
 pub fn thumbnail(args: &Value) -> io::Result<Value> {
     let _com = ComScope::enter(COINIT_APARTMENTTHREADED)?;
     let path = first_path(args)?;
-    let size = args.get("size").and_then(Value::as_u64).unwrap_or(256).clamp(16, 2560) as i32;
+    let size = args
+        .get("size")
+        .and_then(Value::as_u64)
+        .unwrap_or(256)
+        .clamp(16, 2560) as i32;
     let factory: IShellItemImageFactory = windows::core::Interface::cast(&item(&path)?)
         .map_err(|e| hresult_error(&e, "IShellItemImageFactory"))?;
     // SAFETY: returns an HBITMAP we own and delete below.
@@ -621,7 +733,14 @@ pub fn thumbnail(args: &Value) -> io::Result<Value> {
     let result = (|| {
         let mut header = BITMAP::default();
         // SAFETY: reads the bitmap header.
-        if unsafe { GetObjectW(HGDIOBJ(bitmap.0), size_of::<BITMAP>() as i32, Some((&raw mut header).cast())) } == 0 {
+        if unsafe {
+            GetObjectW(
+                HGDIOBJ(bitmap.0),
+                size_of::<BITMAP>() as i32,
+                Some((&raw mut header).cast()),
+            )
+        } == 0
+        {
             return Err(io::Error::other("GetObject failed"));
         }
         let (width, height) = (header.bmWidth, header.bmHeight);
@@ -641,15 +760,23 @@ pub fn thumbnail(args: &Value) -> io::Result<Value> {
         // SAFETY: copies the bitmap as top-down 32-bit BGRA into `pixels`.
         let lines = unsafe {
             let dc = GetDC(None);
-            let lines = GetDIBits(dc, bitmap, 0, height as u32, Some(pixels.as_mut_ptr().cast()), &mut info, DIB_RGB_COLORS);
+            let lines = GetDIBits(
+                dc,
+                bitmap,
+                0,
+                height as u32,
+                Some(pixels.as_mut_ptr().cast()),
+                &mut info,
+                DIB_RGB_COLORS,
+            );
             ReleaseDC(None, dc);
             lines
         };
         if lines == 0 {
             return Err(io::Error::other("GetDIBits failed"));
         }
-        let opaque = pixels.chunks_exact(4).all(|px| px[3] == 0);
-        for px in pixels.chunks_exact_mut(4) {
+        let opaque = pixels.as_chunks::<4>().0.iter().all(|px| px[3] == 0);
+        for px in pixels.as_chunks_mut::<4>().0 {
             px.swap(0, 2);
             if opaque {
                 px[3] = 255;
@@ -664,12 +791,16 @@ pub fn thumbnail(args: &Value) -> io::Result<Value> {
         Ok((width, height, png))
     })();
     // SAFETY: we own the HBITMAP.
-    unsafe { let _ = DeleteObject(HGDIOBJ(bitmap.0)); }
+    unsafe {
+        let _ = DeleteObject(HGDIOBJ(bitmap.0));
+    }
     let (width, height, png) = result?;
     match args.get("output").and_then(Value::as_str) {
         Some(output) => {
             std::fs::write(output, &png)?;
-            Ok(json!({ "path": path, "width": width, "height": height, "output": output, "bytes": png.len() }))
+            Ok(
+                json!({ "path": path, "width": width, "height": height, "output": output, "bytes": png.len() }),
+            )
         }
         None => Ok(json!({
             "path": path, "width": width, "height": height, "mimeType": "image/png",
@@ -682,7 +813,13 @@ pub fn thumbnail(args: &Value) -> io::Result<Value> {
 
 fn extension_of(args: &Value) -> io::Result<String> {
     if let Some(ext) = args.get("extension").and_then(Value::as_str) {
-        return Ok(if ext.starts_with('.') || ext.contains(':') || !ext.contains('.') && ext.len() > 5 { ext.to_owned() } else { format!(".{ext}") });
+        return Ok(
+            if ext.starts_with('.') || ext.contains(':') || !ext.contains('.') && ext.len() > 5 {
+                ext.to_owned()
+            } else {
+                format!(".{ext}")
+            },
+        );
     }
     let path = first_path(args)?;
     std::path::Path::new(&path)
@@ -693,7 +830,11 @@ fn extension_of(args: &Value) -> io::Result<String> {
 
 fn handlers(extension: &str, recommended_only: bool) -> io::Result<Vec<IAssocHandler>> {
     let wide_ext = wide(extension);
-    let filter = if recommended_only { ASSOC_FILTER_RECOMMENDED } else { ASSOC_FILTER_NONE };
+    let filter = if recommended_only {
+        ASSOC_FILTER_RECOMMENDED
+    } else {
+        ASSOC_FILTER_NONE
+    };
     // SAFETY: the "Open with" handler enumeration Explorer uses.
     let enumerator: IEnumAssocHandlers = unsafe { SHAssocEnumHandlers(pcwstr(&wide_ext), filter) }
         .map_err(|e| hresult_error(&e, "SHAssocEnumHandlers"))?;
@@ -713,11 +854,23 @@ fn handlers(extension: &str, recommended_only: bool) -> io::Result<Vec<IAssocHan
 
 fn current_default(query: &str) -> Option<String> {
     // SAFETY: in-process association registration object.
-    let registration: IApplicationAssociationRegistration =
-        unsafe { CoCreateInstance(&ApplicationAssociationRegistration, None, CLSCTX_INPROC_SERVER) }.ok()?;
-    let kind = if query.starts_with('.') { AT_FILEEXTENSION } else { AT_URLPROTOCOL };
+    let registration: IApplicationAssociationRegistration = unsafe {
+        CoCreateInstance(
+            &ApplicationAssociationRegistration,
+            None,
+            CLSCTX_INPROC_SERVER,
+        )
+    }
+    .ok()?;
+    let kind = if query.starts_with('.') {
+        AT_FILEEXTENSION
+    } else {
+        AT_URLPROTOCOL
+    };
     let wide_query = wide(query.trim_end_matches(':'));
-    unsafe { registration.QueryCurrentDefault(pcwstr(&wide_query), kind, AL_EFFECTIVE) }.ok().map(take)
+    unsafe { registration.QueryCurrentDefault(pcwstr(&wide_query), kind, AL_EFFECTIVE) }
+        .ok()
+        .map(take)
 }
 
 /// `shell_open_with`: list the "Open with" handlers (and current default ProgID) for an extension
@@ -727,13 +880,19 @@ pub fn open_with(args: &Value) -> io::Result<Value> {
     let extension = extension_of(args)?;
     match args.get("action").and_then(Value::as_str).unwrap_or("list") {
         "list" => {
-            let recommended_only = args.get("recommended").and_then(Value::as_bool).unwrap_or(false);
+            let recommended_only = args
+                .get("recommended")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
             let list: Vec<Value> = handlers(&extension, recommended_only)?
                 .iter()
                 .map(|handler| unsafe {
                     let mut icon = PWSTR::null();
                     let mut index = 0;
-                    let icon = handler.GetIconLocation(&mut icon, &mut index).ok().map(|()| format!("{},{index}", take(icon)));
+                    let icon = handler
+                        .GetIconLocation(&mut icon, &mut index)
+                        .ok()
+                        .map(|()| format!("{},{index}", take(icon)));
                     json!({
                         "name": handler.GetName().ok().map(take),
                         "uiName": handler.GetUIName().ok().map(take),
@@ -742,22 +901,37 @@ pub fn open_with(args: &Value) -> io::Result<Value> {
                     })
                 })
                 .collect();
-            Ok(json!({ "extension": extension, "default": current_default(&extension), "count": list.len(), "handlers": list }))
+            Ok(
+                json!({ "extension": extension, "default": current_default(&extension), "count": list.len(), "handlers": list }),
+            )
         }
         "invoke" => {
             let path = first_path(args)?;
-            let wanted = args.get("handler").and_then(Value::as_str).ok_or_else(|| invalid("handler is required"))?;
+            let wanted = args
+                .get("handler")
+                .and_then(Value::as_str)
+                .ok_or_else(|| invalid("handler is required"))?;
             let handler = handlers(&extension, false)?
                 .into_iter()
                 .find(|h| unsafe {
                     let names = [h.GetName().ok().map(take), h.GetUIName().ok().map(take)];
-                    names.iter().flatten().any(|n| n.eq_ignore_ascii_case(wanted) || n.to_ascii_lowercase().ends_with(&format!("\\{}", wanted.to_ascii_lowercase())))
+                    names.iter().flatten().any(|n| {
+                        n.eq_ignore_ascii_case(wanted)
+                            || n.to_ascii_lowercase()
+                                .ends_with(&format!("\\{}", wanted.to_ascii_lowercase()))
+                    })
                 })
-                .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, format!("no handler `{wanted}` for {extension}")))?;
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::NotFound,
+                        format!("no handler `{wanted}` for {extension}"),
+                    )
+                })?;
             // SAFETY: the item's data object handed to the handler, as Explorer's "Open with" does.
             let data: IDataObject = unsafe { item(&path)?.BindToHandler(None, &BHID_DataObject) }
                 .map_err(|e| hresult_error(&e, "BHID_DataObject"))?;
-            unsafe { handler.Invoke(&data) }.map_err(|e| hresult_error(&e, "IAssocHandler::Invoke"))?;
+            unsafe { handler.Invoke(&data) }
+                .map_err(|e| hresult_error(&e, "IAssocHandler::Invoke"))?;
             Ok(json!({ "path": path, "handler": wanted }))
         }
         "default" => Ok(json!({ "query": extension, "default": current_default(&extension) })),

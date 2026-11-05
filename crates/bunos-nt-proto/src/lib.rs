@@ -70,8 +70,12 @@ pub mod source {
     pub const ALL: u32 = PROCESS | THREAD | IMAGE | REGISTRY;
 
     /// Names in bit order, for clients.
-    pub const NAMES: [(&str, u32); 4] =
-        [("process", PROCESS), ("thread", THREAD), ("image", IMAGE), ("registry", REGISTRY)];
+    pub const NAMES: [(&str, u32); 4] = [
+        ("process", PROCESS),
+        ("thread", THREAD),
+        ("image", IMAGE),
+        ("registry", REGISTRY),
+    ];
 }
 
 /// Event kinds ([`Record::kind`]).
@@ -131,7 +135,9 @@ impl Kind {
             Kind::ProcessCreate | Kind::ProcessExit => source::PROCESS,
             Kind::ThreadCreate | Kind::ThreadExit => source::THREAD,
             Kind::ImageLoad => source::IMAGE,
-            Kind::RegistrySetValue | Kind::RegistryDeleteValue | Kind::RegistryDeleteKey => source::REGISTRY,
+            Kind::RegistrySetValue | Kind::RegistryDeleteValue | Kind::RegistryDeleteKey => {
+                source::REGISTRY
+            }
         }
     }
 }
@@ -167,7 +173,9 @@ pub enum ProtoError {
 impl core::fmt::Display for ProtoError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ProtoError::Length { expected, got } => write!(f, "buffer is {got} bytes, layout needs {expected}"),
+            ProtoError::Length { expected, got } => {
+                write!(f, "buffer is {got} bytes, layout needs {expected}")
+            }
             ProtoError::Abi(v) => write!(f, "ABI {v} is not ABI {ABI}"),
             ProtoError::UnknownBits(b) => write!(f, "unknown bits {b:#x}"),
             ProtoError::Reserved => write!(f, "reserved field is not zero"),
@@ -194,7 +202,14 @@ fn put(b: &mut [u8], o: usize, v: &[u8]) {
 }
 
 fn exact(b: &[u8], expected: usize) -> Result<(), ProtoError> {
-    if b.len() == expected { Ok(()) } else { Err(ProtoError::Length { expected, got: b.len() }) }
+    if b.len() == expected {
+        Ok(())
+    } else {
+        Err(ProtoError::Length {
+            expected,
+            got: b.len(),
+        })
+    }
 }
 
 /// Input of [`IOCTL_BUNOS_EVENTS_CONFIG`]: `{ abi: u32, sources: u32 }`, exactly 8 bytes.
@@ -271,10 +286,15 @@ impl Caps {
             return Err(ProtoError::Abi(caps.abi));
         }
         if (caps.sources_supported | caps.sources_active) & !source::ALL != 0 {
-            return Err(ProtoError::UnknownBits((caps.sources_supported | caps.sources_active) & !source::ALL));
+            return Err(ProtoError::UnknownBits(
+                (caps.sources_supported | caps.sources_active) & !source::ALL,
+            ));
         }
         if caps.record_size as usize != Record::SIZE {
-            return Err(ProtoError::Length { expected: Record::SIZE, got: caps.record_size as usize });
+            return Err(ProtoError::Length {
+                expected: Record::SIZE,
+                got: caps.record_size as usize,
+            });
         }
         Ok(caps)
     }
@@ -327,7 +347,17 @@ impl Record {
     const NAME_OFFSET: usize = 48;
 
     pub const fn new(kind: Kind, time: i64, pid: u64) -> Self {
-        Record { kind, flags: 0, time, pid, a0: 0, a1: 0, a2: 0, name_len: 0, name: [0; NAME_MAX] }
+        Record {
+            kind,
+            flags: 0,
+            time,
+            pid,
+            a0: 0,
+            a1: 0,
+            a2: 0,
+            name_len: 0,
+            name: [0; NAME_MAX],
+        }
     }
 
     /// Stores `units`, keeping the tail when it does not fit (paths end with the interesting part).
@@ -424,24 +454,43 @@ impl Record {
 /// Number of whole records an [`IOCTL_BUNOS_EVENTS_READ`] output buffer of `len` bytes holds (0 when it cannot
 /// even hold the header, which the driver rejects with `STATUS_BUFFER_TOO_SMALL`).
 pub const fn records_fitting(len: usize) -> usize {
-    if len < EventsHeader::SIZE { 0 } else { (len - EventsHeader::SIZE) / Record::SIZE }
+    if len < EventsHeader::SIZE {
+        0
+    } else {
+        (len - EventsHeader::SIZE) / Record::SIZE
+    }
 }
 
 /// Parses an [`IOCTL_BUNOS_EVENTS_READ`] output: header, then an iterator of strictly parsed records.
 pub fn parse_events(b: &[u8]) -> Result<(EventsHeader, Records<'_>), ProtoError> {
     if b.len() < EventsHeader::SIZE {
-        return Err(ProtoError::Length { expected: EventsHeader::SIZE, got: b.len() });
+        return Err(ProtoError::Length {
+            expected: EventsHeader::SIZE,
+            got: b.len(),
+        });
     }
-    let header = EventsHeader { abi: u32_at(b, 0), count: u32_at(b, 4), dropped: u32_at(b, 8), pending: u32_at(b, 12) };
+    let header = EventsHeader {
+        abi: u32_at(b, 0),
+        count: u32_at(b, 4),
+        dropped: u32_at(b, 8),
+        pending: u32_at(b, 12),
+    };
     if header.abi != ABI {
         return Err(ProtoError::Abi(header.abi));
     }
     let body = &b[EventsHeader::SIZE..];
-    let needed = (header.count as usize).checked_mul(Record::SIZE).ok_or(ProtoError::Count(header.count))?;
+    let needed = (header.count as usize)
+        .checked_mul(Record::SIZE)
+        .ok_or(ProtoError::Count(header.count))?;
     if needed > body.len() {
         return Err(ProtoError::Count(header.count));
     }
-    Ok((header, Records { body: &body[..needed] }))
+    Ok((
+        header,
+        Records {
+            body: &body[..needed],
+        },
+    ))
 }
 
 /// Records of a read; each item is parsed strictly.
@@ -505,10 +554,18 @@ mod tests {
 
     #[test]
     fn config_is_strict() {
-        let ok = EventsConfig { sources: source::PROCESS | source::IMAGE };
+        let ok = EventsConfig {
+            sources: source::PROCESS | source::IMAGE,
+        };
         assert_eq!(EventsConfig::parse(&ok.encode()), Ok(ok));
-        assert!(matches!(EventsConfig::parse(&[0; 7]), Err(ProtoError::Length { .. })));
-        assert!(matches!(EventsConfig::parse(&[0; 9]), Err(ProtoError::Length { .. })));
+        assert!(matches!(
+            EventsConfig::parse(&[0; 7]),
+            Err(ProtoError::Length { .. })
+        ));
+        assert!(matches!(
+            EventsConfig::parse(&[0; 9]),
+            Err(ProtoError::Length { .. })
+        ));
         let mut b = ok.encode();
         b[0] = 2;
         assert_eq!(EventsConfig::parse(&b), Err(ProtoError::Abi(2)));
@@ -520,31 +577,56 @@ mod tests {
     #[test]
     fn record_round_trip_and_truncation() {
         let mut r = Record::new(Kind::ProcessCreate, 133_000_000_000_000_000, 4242);
-        let long: Vec<u16> = "C:\\".encode_utf16().chain(core::iter::repeat_n(b'a' as u16, 200)).chain("\\bun.exe".encode_utf16()).collect();
+        let long: Vec<u16> = "C:\\"
+            .encode_utf16()
+            .chain(core::iter::repeat_n(b'a' as u16, 200))
+            .chain("\\bun.exe".encode_utf16())
+            .collect();
         r.set_name(&long);
         assert_eq!(r.name_len as usize, NAME_MAX);
         assert!(r.flags & flag::NAME_TRUNCATED != 0);
-        assert!(std::string::String::from_utf16(r.name_units()).unwrap().ends_with("\\bun.exe"));
+        assert!(
+            std::string::String::from_utf16(r.name_units())
+                .unwrap()
+                .ends_with("\\bun.exe")
+        );
         let mut b = [0u8; Record::SIZE];
         r.encode(&mut b);
         assert_eq!(Record::parse(&b), Ok(r));
 
         let mut j = Record::new(Kind::RegistrySetValue, 1, 2);
-        let key: Vec<u16> = "\\REGISTRY\\MACHINE\\SOFTWARE\\Bun".encode_utf16().collect();
+        let key: Vec<u16> = "\\REGISTRY\\MACHINE\\SOFTWARE\\Bun"
+            .encode_utf16()
+            .collect();
         let val: Vec<u16> = "Mode".encode_utf16().collect();
         j.set_name_joined(&key, &val);
-        assert_eq!(std::string::String::from_utf16(j.name_units()).unwrap(), "\\REGISTRY\\MACHINE\\SOFTWARE\\Bun\\Mode");
+        assert_eq!(
+            std::string::String::from_utf16(j.name_units()).unwrap(),
+            "\\REGISTRY\\MACHINE\\SOFTWARE\\Bun\\Mode"
+        );
         assert_eq!(j.flags, 0);
         let long_key: Vec<u16> = core::iter::repeat_n(b'k' as u16, 300).collect();
         j.set_name_joined(&long_key, &val);
         assert_eq!(j.name_len as usize, NAME_MAX);
-        assert!(std::string::String::from_utf16(j.name_units()).unwrap().ends_with("k\\Mode"));
+        assert!(
+            std::string::String::from_utf16(j.name_units())
+                .unwrap()
+                .ends_with("k\\Mode")
+        );
     }
 
     #[test]
     fn events_parse_checks_count_against_length() {
         let mut out = Vec::new();
-        out.extend_from_slice(&EventsHeader { abi: ABI, count: 2, dropped: 1, pending: 0 }.encode());
+        out.extend_from_slice(
+            &EventsHeader {
+                abi: ABI,
+                count: 2,
+                dropped: 1,
+                pending: 0,
+            }
+            .encode(),
+        );
         let mut rec = [0u8; Record::SIZE];
         Record::new(Kind::ThreadCreate, 5, 6).encode(&mut rec);
         out.extend_from_slice(&rec);
@@ -553,7 +635,14 @@ mod tests {
         let (h, it) = parse_events(&out).unwrap();
         assert_eq!(h.count, 2);
         assert_eq!(it.filter(Result::is_ok).count(), 2);
-        let mut huge = EventsHeader { abi: ABI, count: u32::MAX, dropped: 0, pending: 0 }.encode().to_vec();
+        let mut huge = EventsHeader {
+            abi: ABI,
+            count: u32::MAX,
+            dropped: 0,
+            pending: 0,
+        }
+        .encode()
+        .to_vec();
         huge.extend_from_slice(&rec);
         assert_eq!(parse_events(&huge).err(), Some(ProtoError::Count(u32::MAX)));
         assert_eq!(records_fitting(15), 0);
@@ -562,7 +651,10 @@ mod tests {
 
     #[test]
     fn sources_text() {
-        assert_eq!(parse_sources("process, image"), Some(source::PROCESS | source::IMAGE));
+        assert_eq!(
+            parse_sources("process, image"),
+            Some(source::PROCESS | source::IMAGE)
+        );
         assert_eq!(parse_sources("all"), Some(source::ALL));
         assert_eq!(parse_sources("none"), Some(0));
         assert_eq!(parse_sources("kernel"), None);

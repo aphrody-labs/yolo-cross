@@ -27,10 +27,10 @@ pub mod snapshot;
 pub mod speech;
 mod steam;
 pub mod system;
-pub mod tweaks;
 mod tcp;
 #[cfg(any(windows, test))]
 mod timefmt;
+pub mod tweaks;
 #[cfg(windows)]
 mod win32;
 #[cfg(windows)]

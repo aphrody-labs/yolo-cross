@@ -34,7 +34,10 @@ pub fn call(tool: &str, args: &Value) -> Option<Result<Value, SubsystemError>> {
 }
 
 fn limit(args: &Value, default: u64, max: u64) -> usize {
-    args.get("limit").and_then(Value::as_u64).unwrap_or(default).clamp(1, max) as usize
+    args.get("limit")
+        .and_then(Value::as_u64)
+        .unwrap_or(default)
+        .clamp(1, max) as usize
 }
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -94,7 +97,12 @@ pub fn parse_object_types(b: &[u8]) -> Option<Vec<(u16, String)>> {
         let index = *b.get(o + 90)? as u16;
         let name_at = o + INFO;
         let raw = b.get(name_at..name_at + len.min(max))?;
-        let units: Vec<u16> = raw.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
+        let units: Vec<u16> = raw
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .collect();
         out.push((index, String::from_utf16_lossy(&units)));
         o = (name_at + max + 7) & !7;
     }
@@ -122,17 +130,28 @@ pub fn parse_modules(b: &[u8]) -> Option<Vec<KernelModule>> {
         let load_order = rd_u16(b, o + 32)?;
         let file_at = rd_u16(b, o + 38)? as usize;
         let path_raw = b.get(o + 40..o + 296)?;
-        let end = path_raw.iter().position(|&c| c == 0).unwrap_or(path_raw.len());
+        let end = path_raw
+            .iter()
+            .position(|&c| c == 0)
+            .unwrap_or(path_raw.len());
         let path = String::from_utf8_lossy(&path_raw[..end]).into_owned();
-        let name = String::from_utf8_lossy(path_raw.get(file_at.min(end)..end).unwrap_or_default()).into_owned();
-        out.push(KernelModule { name, path, size, load_order });
+        let name = String::from_utf8_lossy(path_raw.get(file_at.min(end)..end).unwrap_or_default())
+            .into_owned();
+        out.push(KernelModule {
+            name,
+            path,
+            size,
+            load_order,
+        });
     }
     Some(out)
 }
 
 #[cfg(windows)]
 fn query_system(class: i32) -> Result<Vec<u8>, SubsystemError> {
-    use windows::Wdk::System::SystemInformation::{NtQuerySystemInformation, SYSTEM_INFORMATION_CLASS};
+    use windows::Wdk::System::SystemInformation::{
+        NtQuerySystemInformation, SYSTEM_INFORMATION_CLASS,
+    };
     const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004_u32 as i32;
     let mut size = 1usize << 16;
     loop {
@@ -140,7 +159,12 @@ fn query_system(class: i32) -> Result<Vec<u8>, SubsystemError> {
         let mut needed = 0u32;
         // SAFETY: the buffer is valid for `size` bytes; the call writes at most that much.
         let status = unsafe {
-            NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS(class), buf.as_mut_ptr().cast(), size as u32, &mut needed)
+            NtQuerySystemInformation(
+                SYSTEM_INFORMATION_CLASS(class),
+                buf.as_mut_ptr().cast(),
+                size as u32,
+                &mut needed,
+            )
         };
         if status.0 == STATUS_INFO_LENGTH_MISMATCH {
             size = (needed as usize).max(size * 2);
@@ -150,7 +174,10 @@ fn query_system(class: i32) -> Result<Vec<u8>, SubsystemError> {
             continue;
         }
         if status.0 < 0 {
-            return Err(failed(format!("NtQuerySystemInformation({class}) failed {:#010x}", status.0)));
+            return Err(failed(format!(
+                "NtQuerySystemInformation({class}) failed {:#010x}",
+                status.0
+            )));
         }
         buf.truncate((needed as usize).min(size).max(16));
         return Ok(buf);
@@ -166,7 +193,13 @@ fn object_types() -> Vec<(u16, String)> {
         let mut needed = 0u32;
         // SAFETY: null handle + ObjectTypesInformation (3) is the documented global query; buffer valid for `size`.
         let status = unsafe {
-            NtQueryObject(None, OBJECT_INFORMATION_CLASS(3), Some(buf.as_mut_ptr().cast()), size as u32, Some(&mut needed))
+            NtQueryObject(
+                None,
+                OBJECT_INFORMATION_CLASS(3),
+                Some(buf.as_mut_ptr().cast()),
+                size as u32,
+                Some(&mut needed),
+            )
         };
         if status.0 >= 0 {
             return parse_object_types(&buf).unwrap_or_default();
@@ -183,10 +216,14 @@ fn handles(args: &Value) -> Result<Value, SubsystemError> {
         let pid = args.get("pid").and_then(Value::as_u64);
         let limit = limit(args, 500, 100_000);
         let buf = query_system(64)?;
-        let all = parse_handles(&buf).ok_or_else(|| failed("short SYSTEM_HANDLE_INFORMATION_EX"))?;
+        let all =
+            parse_handles(&buf).ok_or_else(|| failed("short SYSTEM_HANDLE_INFORMATION_EX"))?;
         let types: std::collections::HashMap<u16, String> = object_types().into_iter().collect();
         let type_name = |i: u16| types.get(&i).cloned().unwrap_or_else(|| format!("#{i}"));
-        let selected: Vec<&HandleEntry> = all.iter().filter(|h| pid.is_none_or(|p| h.pid == p)).collect();
+        let selected: Vec<&HandleEntry> = all
+            .iter()
+            .filter(|h| pid.is_none_or(|p| h.pid == p))
+            .collect();
         let mut by_type: std::collections::BTreeMap<String, u64> = Default::default();
         for h in &selected {
             *by_type.entry(type_name(h.type_index)).or_default() += 1;
@@ -199,13 +236,17 @@ fn handles(args: &Value) -> Result<Value, SubsystemError> {
                        "access": format!("{:#x}", h.access), "attributes": h.attributes})
             })
             .collect();
-        Ok(json!({"source": "user-mode", "total": all.len(), "matched": selected.len(), "byType": by_type,
-                  "handles": handles, "truncated": selected.len() > limit}))
+        Ok(
+            json!({"source": "user-mode", "total": all.len(), "matched": selected.len(), "byType": by_type,
+                  "handles": handles, "truncated": selected.len() > limit}),
+        )
     }
     #[cfg(not(windows))]
     {
         let _ = args;
-        Err(SubsystemError::Unavailable("nt_handles is Windows-only".into()))
+        Err(SubsystemError::Unavailable(
+            "nt_handles is Windows-only".into(),
+        ))
     }
 }
 
@@ -213,7 +254,10 @@ fn handles(args: &Value) -> Result<Value, SubsystemError> {
 fn kernel_modules(args: &Value) -> Result<Value, SubsystemError> {
     #[cfg(windows)]
     {
-        let filter = args.get("name").and_then(Value::as_str).map(str::to_ascii_lowercase);
+        let filter = args
+            .get("name")
+            .and_then(Value::as_str)
+            .map(str::to_ascii_lowercase);
         let limit = limit(args, 500, 4_096);
         let buf = query_system(11)?;
         let mods = parse_modules(&buf).ok_or_else(|| failed("short RTL_PROCESS_MODULES"))?;
@@ -223,13 +267,17 @@ fn kernel_modules(args: &Value) -> Result<Value, SubsystemError> {
             .take(limit)
             .map(|m| json!({"name": m.name, "path": m.path, "size": m.size, "loadOrder": m.load_order}))
             .collect();
-        Ok(json!({"source": "user-mode", "count": mods.len(), "modules": list,
-                  "bunosLoaded": mods.iter().any(|m| m.name.eq_ignore_ascii_case("bunos.sys"))}))
+        Ok(
+            json!({"source": "user-mode", "count": mods.len(), "modules": list,
+                  "bunosLoaded": mods.iter().any(|m| m.name.eq_ignore_ascii_case("bunos.sys"))}),
+        )
     }
     #[cfg(not(windows))]
     {
         let _ = args;
-        Err(SubsystemError::Unavailable("nt_kernel_modules is Windows-only".into()))
+        Err(SubsystemError::Unavailable(
+            "nt_kernel_modules is Windows-only".into(),
+        ))
     }
 }
 
@@ -268,7 +316,11 @@ mod events {
     }
 
     fn names(mask: u32) -> Vec<&'static str> {
-        proto::source::NAMES.iter().filter(|(_, b)| mask & b != 0).map(|(n, _)| *n).collect()
+        proto::source::NAMES
+            .iter()
+            .filter(|(_, b)| mask & b != 0)
+            .map(|(n, _)| *n)
+            .collect()
     }
 
     pub fn status() -> Value {
@@ -292,15 +344,26 @@ mod events {
     fn snapshot() -> HashMap<u32, String> {
         let mut system = sysinfo::System::new();
         system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
-        system.processes().iter().map(|(pid, p)| (pid.as_u32(), p.name().to_string_lossy().into_owned())).collect()
+        system
+            .processes()
+            .iter()
+            .map(|(pid, p)| (pid.as_u32(), p.name().to_string_lossy().into_owned()))
+            .collect()
     }
 
     pub fn start(args: &Value) -> Result<Value, SubsystemError> {
-        let text = args.get("sources").and_then(Value::as_str).unwrap_or("process,image");
-        let mask = proto::parse_sources(text).ok_or_else(|| bad(format!("unknown source in {text}")))?;
+        let text = args
+            .get("sources")
+            .and_then(Value::as_str)
+            .unwrap_or("process,image");
+        let mask =
+            proto::parse_sources(text).ok_or_else(|| bad(format!("unknown source in {text}")))?;
         let mut session = SESSION.lock().unwrap_or_else(|e| e.into_inner());
         *session = None;
-        let force_poll = args.get("userMode").and_then(Value::as_bool).unwrap_or(false);
+        let force_poll = args
+            .get("userMode")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
         if !force_poll && let Ok(device) = Device::open() {
             let caps = device.configure(mask).map_err(failed)?;
             *session = Some(Session::Kernel(device));
@@ -318,19 +381,27 @@ mod events {
 
     /// FILETIME now (100 ns since 1601), the clock of the kernel records.
     fn filetime_now() -> i64 {
-        let unix = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+        let unix = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default();
         (unix.as_nanos() / 100) as i64 + 116_444_736_000_000_000
     }
 
     pub fn read(args: &Value) -> Result<Value, SubsystemError> {
-        let max = args.get("max").and_then(Value::as_u64).unwrap_or(256).clamp(1, 512) as usize;
+        let max = args
+            .get("max")
+            .and_then(Value::as_u64)
+            .unwrap_or(256)
+            .clamp(1, 512) as usize;
         let mut session = SESSION.lock().unwrap_or_else(|e| e.into_inner());
         match session.as_mut() {
             None => Err(bad("no event session: call nt_events_start first")),
             Some(Session::Kernel(device)) => {
                 let batch = device.read_events(max).map_err(failed)?;
-                Ok(json!({"source": "kernel", "events": batch.events.iter().map(event_json).collect::<Vec<_>>(),
-                          "dropped": batch.dropped, "pending": batch.pending}))
+                Ok(
+                    json!({"source": "kernel", "events": batch.events.iter().map(event_json).collect::<Vec<_>>(),
+                          "dropped": batch.dropped, "pending": batch.pending}),
+                )
             }
             Some(Session::Poll(previous)) => {
                 let current = snapshot();
@@ -343,13 +414,17 @@ mod events {
                 }
                 for (pid, name) in previous.iter() {
                     if !current.contains_key(pid) {
-                        events.push(json!({"kind": "process_exit", "time": now, "pid": pid, "name": name}));
+                        events.push(
+                            json!({"kind": "process_exit", "time": now, "pid": pid, "name": name}),
+                        );
                     }
                 }
                 *previous = current;
                 let pending = events.len().saturating_sub(max);
                 events.truncate(max);
-                Ok(json!({"source": "user-mode", "events": events, "dropped": pending, "pending": 0}))
+                Ok(
+                    json!({"source": "user-mode", "events": events, "dropped": pending, "pending": 0}),
+                )
             }
         }
     }
@@ -382,13 +457,25 @@ mod tests {
         b[16 + 30] = 7; // type index
         let h = parse_handles(&b).unwrap();
         assert_eq!(h.len(), 2);
-        assert_eq!(h[0], HandleEntry { pid: 4, handle: 0x10, access: 0x1f_0003, type_index: 7, attributes: 0 });
+        assert_eq!(
+            h[0],
+            HandleEntry {
+                pid: 4,
+                handle: 0x10,
+                access: 0x1f_0003,
+                type_index: 7,
+                attributes: 0
+            }
+        );
         assert!(parse_handles(&[0; 8]).is_none());
     }
 
     #[test]
     fn object_types_walk() {
-        let name: Vec<u8> = "Process".encode_utf16().flat_map(u16::to_le_bytes).collect();
+        let name: Vec<u8> = "Process"
+            .encode_utf16()
+            .flat_map(u16::to_le_bytes)
+            .collect();
         let mut b = vec![0u8; 8];
         b[0] = 1;
         let mut info = vec![0u8; 104];
@@ -398,7 +485,10 @@ mod tests {
         b.extend_from_slice(&info);
         b.extend_from_slice(&name);
         b.extend_from_slice(&[0, 0]);
-        assert_eq!(parse_object_types(&b).unwrap(), vec![(7, "Process".to_string())]);
+        assert_eq!(
+            parse_object_types(&b).unwrap(),
+            vec![(7, "Process".to_string())]
+        );
         b[0] = 2; // second entry missing: rejected, not panicking
         assert!(parse_object_types(&b).is_none());
     }
@@ -424,7 +514,9 @@ mod tests {
             s ^= s >> 7;
             s ^= s << 17;
             let len = (s % 2048) as usize;
-            let b: Vec<u8> = (0..len).map(|i| (s.rotate_left(i as u32 % 64) >> 3) as u8).collect();
+            let b: Vec<u8> = (0..len)
+                .map(|i| (s.rotate_left(i as u32 % 64) >> 3) as u8)
+                .collect();
             let _ = parse_handles(&b);
             let _ = parse_object_types(&b);
             let _ = parse_modules(&b);

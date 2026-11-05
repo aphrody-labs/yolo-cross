@@ -48,7 +48,10 @@ unsafe extern "system" fn forward(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: 
         let Some((menu, previous)) = active.as_ref() else {
             return LRESULT(0);
         };
-        if matches!(msg, WM_INITMENUPOPUP | WM_DRAWITEM | WM_MEASUREITEM | WM_MENUCHAR) {
+        if matches!(
+            msg,
+            WM_INITMENUPOPUP | WM_DRAWITEM | WM_MEASUREITEM | WM_MENUCHAR
+        ) {
             if let Ok(menu3) = menu.cast::<IContextMenu3>() {
                 let mut result = LRESULT(0);
                 // SAFETY: documented IContextMenu3 message forwarding.
@@ -82,7 +85,8 @@ fn menu_for(paths: &[String]) -> io::Result<IContextMenu> {
         // SAFETY: the multi-selection item array Explorer builds its menu from.
         let array: IShellItemArray = unsafe { SHCreateShellItemArrayFromIDLists(&refs) }
             .map_err(|e| hresult_error(&e, "SHCreateShellItemArrayFromIDLists"))?;
-        unsafe { array.BindToHandler(None, &BHID_SFUIObject) }.map_err(|e| hresult_error(&e, "context menu"))
+        unsafe { array.BindToHandler(None, &BHID_SFUIObject) }
+            .map_err(|e| hresult_error(&e, "context menu"))
     })();
     for pidl in pidls {
         // SAFETY: each PIDL came from SHParseDisplayName.
@@ -95,7 +99,10 @@ fn menu_for(paths: &[String]) -> io::Result<IContextMenu> {
 /// command. Returns the chosen id and canonical verb, or `chosen: null` when dismissed.
 pub fn show(paths: &[String], x: Option<i32>, y: Option<i32>) -> io::Result<Value> {
     if paths.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "path is required"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "path is required",
+        ));
     }
     let _com = ComScope::enter(COINIT_APARTMENTTHREADED)?;
     let menu = menu_for(paths)?;
@@ -105,29 +112,66 @@ pub fn show(paths: &[String], x: Option<i32>, y: Option<i32>) -> io::Result<Valu
     let (x, y) = (x.unwrap_or(cursor.x), y.unwrap_or(cursor.y));
     // SAFETY: a hidden tool window owns the popup and receives the handler's messages.
     let owner = unsafe {
-        CreateWindowExW(WS_EX_TOOLWINDOW, w!("STATIC"), PCWSTR::null(), WS_POPUP, x, y, 1, 1, None, None, None, None)
+        CreateWindowExW(
+            WS_EX_TOOLWINDOW,
+            w!("STATIC"),
+            PCWSTR::null(),
+            WS_POPUP,
+            x,
+            y,
+            1,
+            1,
+            None,
+            None,
+            None,
+            None,
+        )
     }
     .map_err(|e| hresult_error(&e, "CreateWindowEx"))?;
     // SAFETY: subclass the owner; the previous procedure is restored implicitly by DestroyWindow.
     let previous: WNDPROC = unsafe {
-        std::mem::transmute::<isize, WNDPROC>(SetWindowLongPtrW(owner, GWLP_WNDPROC, forward as *const () as isize))
+        std::mem::transmute::<isize, WNDPROC>(SetWindowLongPtrW(
+            owner,
+            GWLP_WNDPROC,
+            forward as *const () as isize,
+        ))
     };
     ACTIVE.with(|active| *active.borrow_mut() = Some((menu.clone(), previous)));
     let outcome = (|| {
-        let hmenu = unsafe { CreatePopupMenu() }.map_err(|e| hresult_error(&e, "CreatePopupMenu"))?;
+        let hmenu =
+            unsafe { CreatePopupMenu() }.map_err(|e| hresult_error(&e, "CreatePopupMenu"))?;
         // SAFETY: fills the popup with command ids CMD_FIRST..=CMD_LAST.
-        let hr = unsafe { menu.QueryContextMenu(hmenu, 0, CMD_FIRST, CMD_LAST, CMF_NORMAL | CMF_EXTENDEDVERBS) };
+        let hr = unsafe {
+            menu.QueryContextMenu(
+                hmenu,
+                0,
+                CMD_FIRST,
+                CMD_LAST,
+                CMF_NORMAL | CMF_EXTENDEDVERBS,
+            )
+        };
         if hr.is_err() {
             unsafe {
                 let _ = DestroyMenu(hmenu);
             }
-            return Err(hresult_error(&windows::core::Error::from(hr), "QueryContextMenu"));
+            return Err(hresult_error(
+                &windows::core::Error::from(hr),
+                "QueryContextMenu",
+            ));
         }
         // SAFETY: modal popup; TPM_RETURNCMD returns the chosen id (0 = dismissed). The WM_NULL
         // post is the documented fix for menus that do not close on the first click elsewhere.
         let chosen = unsafe {
             let _ = SetForegroundWindow(owner);
-            let id = TrackPopupMenuEx(hmenu, (TPM_RETURNCMD | TPM_RIGHTBUTTON).0, x, y, owner, None).0 as u32;
+            let id = TrackPopupMenuEx(
+                hmenu,
+                (TPM_RETURNCMD | TPM_RIGHTBUTTON).0,
+                x,
+                y,
+                owner,
+                None,
+            )
+            .0 as u32;
             let _ = PostMessageW(Some(owner), WM_NULL, WPARAM(0), LPARAM(0));
             id
         };
@@ -145,7 +189,8 @@ pub fn show(paths: &[String], x: Option<i32>, y: Option<i32>) -> io::Result<Valu
                 ..Default::default()
             };
             // SAFETY: the EX struct extends CMINVOKECOMMANDINFO (cbSize tells the handler).
-            let invoked = unsafe { menu.InvokeCommand((&raw const info).cast::<CMINVOKECOMMANDINFO>()) };
+            let invoked =
+                unsafe { menu.InvokeCommand((&raw const info).cast::<CMINVOKECOMMANDINFO>()) };
             if invoked.is_ok() {
                 super::namespace::pump_dialogs(Duration::from_secs(3600));
             }

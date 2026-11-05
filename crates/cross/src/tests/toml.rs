@@ -24,6 +24,8 @@ fn toml_check() -> Result<(), Box<dyn std::error::Error>> {
             "src",
             "CODE_OF_CONDUCT.md",
             "CHANGELOG.md",
+            // Absorbed upstream crate: its README fences document its own Cargo.toml, not Cross.toml.
+            "cargo-zigbuild",
         ],
         |p| p == Some("md".as_ref()),
     );

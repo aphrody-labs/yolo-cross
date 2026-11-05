@@ -30,7 +30,9 @@ fn run(device: &Device, args: &[String]) -> Result<(), Error> {
         "ping" => {
             let text = args.get(1).map(String::as_str).unwrap_or("bunos");
             let start = Instant::now();
-            device.ping(text.as_bytes()).map(|echo| println!("{} ({:?})", String::from_utf8_lossy(&echo), start.elapsed()))
+            device
+                .ping(text.as_bytes())
+                .map(|echo| println!("{} ({:?})", String::from_utf8_lossy(&echo), start.elapsed()))
         }
         "events" => {
             let sources = args.get(1).map(String::as_str).unwrap_or("process,image");
@@ -60,7 +62,9 @@ fn run(device: &Device, args: &[String]) -> Result<(), Error> {
             result
         }
         other => {
-            eprintln!("unknown command {other}: status | version | caps | ping [text] | events [sources] [seconds]");
+            eprintln!(
+                "unknown command {other}: status | version | caps | ping [text] | events [sources] [seconds]"
+            );
             std::process::exit(2);
         }
     }

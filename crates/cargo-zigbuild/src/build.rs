@@ -114,10 +114,7 @@ impl Build {
             process::exit(status.code().unwrap_or(1));
         }
         // create fat binaries for artifacts
-        for (x86_64_path, aarch64_path) in x86_64_artifacts
-            .into_iter()
-            .zip(aarch64_artifacts.into_iter())
-        {
+        for (x86_64_path, aarch64_path) in x86_64_artifacts.into_iter().zip(aarch64_artifacts) {
             let mut fat = fat_macho::FatWriter::new();
             match fat.add(fs_err::read(&x86_64_path)?) {
                 Err(fat_macho::Error::InvalidMachO(_)) => continue,

@@ -13,7 +13,10 @@ use super::{Catalog, Journal, Plan, Profile, TweakError};
 /// `%LOCALAPPDATA%\bunos\win11` (or `$XDG_DATA_HOME/bunos/win11` off Windows, for tests).
 #[must_use]
 pub fn state_dir() -> PathBuf {
-    dirs::data_local_dir().unwrap_or_else(std::env::temp_dir).join("bunos").join("win11")
+    dirs::data_local_dir()
+        .unwrap_or_else(std::env::temp_dir)
+        .join("bunos")
+        .join("win11")
 }
 
 fn journal_dir() -> PathBuf {
@@ -22,7 +25,10 @@ fn journal_dir() -> PathBuf {
 
 fn now() -> String {
     // A sortable, filename-safe UTC stamp without pulling a formatter: seconds since the epoch.
-    let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
     format!("{secs}")
 }
 
@@ -34,7 +40,10 @@ fn write_json(path: &std::path::Path, value: &impl Serialize) -> io::Result<()> 
 }
 
 /// Build the plan for `profile` and write it to `state_dir()/plan-<ts>.json`.
-pub fn make_plan(profile: &Profile, backend: &mut dyn super::Backend) -> Result<(Plan, PathBuf), TweakError> {
+pub fn make_plan(
+    profile: &Profile,
+    backend: &mut dyn super::Backend,
+) -> Result<(Plan, PathBuf), TweakError> {
     let catalog = Catalog::embedded()?;
     let tweaks = profile.select(&catalog)?;
     let ts = now();
@@ -60,7 +69,9 @@ pub fn latest_journal() -> Option<PathBuf> {
 
 #[cfg(windows)]
 mod live_apply {
-    use super::{super::live::LiveBackend, super::restore, super::touched_keys, write_json, Journal, Plan};
+    use super::{
+        super::live::LiveBackend, super::restore, super::touched_keys, Journal, Plan, write_json,
+    };
     use std::{io, path::PathBuf};
 
     /// Apply a live plan: restore point, per-key `.reg` export, then journaled apply with incremental persistence.
@@ -70,8 +81,13 @@ mod live_apply {
         let backup_dir = super::state_dir().join(format!("backup-{ts}"));
         let journal_path = super::journal_dir().join(format!("journal-{ts}.json"));
 
-        let mut journal = Journal { started: ts.clone(), ..Journal::default() };
-        journal.restore_point = restore::create_restore_point(description).ok().map(|n| format!("#{n}"));
+        let mut journal = Journal {
+            started: ts.clone(),
+            ..Journal::default()
+        };
+        journal.restore_point = restore::create_restore_point(description)
+            .ok()
+            .map(|n| format!("#{n}"));
         for (i, (hive, key)) in touched_keys(plan).into_iter().enumerate() {
             if let Ok(Some(entry)) = restore::export_key(hive, &key, &backup_dir, i) {
                 journal.registry_exports.push(entry);
@@ -84,7 +100,9 @@ mod live_apply {
             let _ = write_json(&journal_path, j);
         });
         write_json(&journal_path, &journal)?;
-        super::super::live::notify_settings_changed(&plan.steps.iter().map(|s| &s.op).collect::<Vec<_>>());
+        super::super::live::notify_settings_changed(
+            &plan.steps.iter().map(|s| &s.op).collect::<Vec<_>>(),
+        );
         Ok((journal, journal_path))
     }
 
@@ -98,7 +116,9 @@ mod live_apply {
         let mut journal: Journal = serde_json::from_slice(&std::fs::read(path)?)?;
         let report = super::super::undo(&mut LiveBackend, &mut journal);
         write_json(path, &journal)?;
-        super::super::live::notify_settings_changed(&journal.entries.iter().map(|e| &e.op).collect::<Vec<_>>());
+        super::super::live::notify_settings_changed(
+            &journal.entries.iter().map(|e| &e.op).collect::<Vec<_>>(),
+        );
         Ok(report)
     }
 }

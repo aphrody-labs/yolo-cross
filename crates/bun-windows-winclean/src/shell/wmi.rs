@@ -29,12 +29,21 @@ const RPC_C_AUTHZ_NONE: u32 = 0;
 
 fn connect(namespace: &str) -> io::Result<IWbemServices> {
     // SAFETY: in-process locator; COM is initialised by the caller.
-    let locator: IWbemLocator = unsafe { CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER) }
-        .map_err(|e| hresult_error(&e, "create the WMI locator"))?;
+    let locator: IWbemLocator =
+        unsafe { CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER) }
+            .map_err(|e| hresult_error(&e, "create the WMI locator"))?;
     let empty = BSTR::new();
     // SAFETY: local connection with the caller's token.
     let services = unsafe {
-        locator.ConnectServer(&BSTR::from(namespace), &empty, &empty, &empty, 0, &empty, None)
+        locator.ConnectServer(
+            &BSTR::from(namespace),
+            &empty,
+            &empty,
+            &empty,
+            0,
+            &empty,
+            None,
+        )
     }
     .map_err(|e| hresult_error(&e, &format!("connect to WMI namespace {namespace}")))?;
     // SAFETY: impersonation, as every WMI provider expects.
@@ -60,7 +69,10 @@ fn next(enumerator: &IEnumWbemClassObject) -> io::Result<Option<IWbemClassObject
     // SAFETY: room for one object.
     let hr = unsafe { enumerator.Next(WBEM_INFINITE, &mut objects, &mut returned) };
     if hr.is_err() {
-        return Err(hresult_error(&windows::core::Error::from(hr), "WMI enumeration"));
+        return Err(hresult_error(
+            &windows::core::Error::from(hr),
+            "WMI enumeration",
+        ));
     }
     let [object] = objects;
     Ok(if returned == 0 { None } else { object })
@@ -71,7 +83,9 @@ fn names(object: &IWbemClassObject) -> io::Result<Vec<String>> {
     let array = unsafe {
         object.GetNames(
             PCWSTR::null(),
-            windows::Win32::System::Wmi::WBEM_CONDITION_FLAG_TYPE(WBEM_FLAG_ALWAYS.0 | WBEM_FLAG_NONSYSTEM_ONLY.0),
+            windows::Win32::System::Wmi::WBEM_CONDITION_FLAG_TYPE(
+                WBEM_FLAG_ALWAYS.0 | WBEM_FLAG_NONSYSTEM_ONLY.0,
+            ),
             std::ptr::null(),
         )
     }
@@ -81,12 +95,16 @@ fn names(object: &IWbemClassObject) -> io::Result<Vec<String>> {
     unsafe {
         let inner = &mut *holder.0.Anonymous.Anonymous;
         inner.vt = windows::Win32::System::Variant::VARENUM(
-            windows::Win32::System::Variant::VT_ARRAY.0 | windows::Win32::System::Variant::VT_BSTR.0,
+            windows::Win32::System::Variant::VT_ARRAY.0
+                | windows::Win32::System::Variant::VT_BSTR.0,
         );
         inner.Anonymous.parray = array;
     }
     Ok(match to_json(&holder.0) {
-        Value::Array(items) => items.into_iter().filter_map(|v| v.as_str().map(str::to_owned)).collect(),
+        Value::Array(items) => items
+            .into_iter()
+            .filter_map(|v| v.as_str().map(str::to_owned))
+            .collect(),
         _ => Vec::new(),
     })
 }

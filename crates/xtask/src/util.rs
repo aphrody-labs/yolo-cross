@@ -230,13 +230,13 @@ impl std::str::FromStr for ImageTarget {
         // where `centos` is a subtype of `x86_64-unknown-linux-gnu`. however,
         // LLVM triples can also contain `.` characters, such as with
         // `thumbv8m.main-none-eabihf`, so we make sure it's only at the end.
-        if let Some((target, sub)) = s.rsplit_once('.') {
-            if sub.chars().all(|x| char::is_ascii_alphabetic(&x)) {
-                return Ok(ImageTarget {
-                    name: target.to_string(),
-                    sub: Some(sub.to_string()),
-                });
-            }
+        if let Some((target, sub)) = s.rsplit_once('.')
+            && sub.chars().all(|x| char::is_ascii_alphabetic(&x))
+        {
+            return Ok(ImageTarget {
+                name: target.to_string(),
+                sub: Some(sub.to_string()),
+            });
         }
 
         Ok(ImageTarget {
@@ -445,7 +445,7 @@ mod tests {
             .ok_or_else(|| eyre::eyre!("have no dockerfiles"))?;
 
         if actual_base != max_base {
-            eyre::bail!("most common base image is {max_base} but source code has {actual_base}")
+            eyre::bail!("most common base image is {max_base} but source code has {actual_base}");
         } else {
             Ok(())
         }

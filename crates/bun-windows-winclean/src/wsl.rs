@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Windows WSL launcher, including invocation from the WSL guest.
 
-use yolo_process::NoWindow as _;
 use std::{
     io::{self, Read, Seek, SeekFrom},
     path::PathBuf,
     process::{Command, Stdio},
     time::{Duration, Instant},
 };
+use yolo_process::NoWindow as _;
 
 const TIMEOUT: Duration = Duration::from_secs(30);
 const OUTPUT_LIMIT: u64 = 4 * 1024 * 1024;

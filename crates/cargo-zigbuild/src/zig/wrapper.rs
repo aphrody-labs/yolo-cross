@@ -568,10 +568,9 @@ pub(crate) fn is_mingw_shell() -> bool {
 #[cfg(target_os = "windows")]
 pub fn adjust_canonicalization(p: String) -> String {
     const VERBATIM_PREFIX: &str = r#"\\?\"#;
-    if p.starts_with(VERBATIM_PREFIX) {
-        p[VERBATIM_PREFIX.len()..].to_string()
-    } else {
-        p
+    match p.strip_prefix(VERBATIM_PREFIX) {
+        Some(stripped) => stripped.to_string(),
+        None => p,
     }
 }
 

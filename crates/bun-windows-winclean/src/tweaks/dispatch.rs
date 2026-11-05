@@ -2,7 +2,7 @@
 //! The `tweak_*` tool handlers: thin JSON adapters over [`super`] so the engine is reachable as aphrody MCP /
 //! `aphrody` CLI tools and from the Bun side, with the same catalog as `bunos-win11`.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use super::{Catalog, Profile};
 use crate::SubsystemError;
@@ -51,9 +51,9 @@ pub fn catalog(args: &Value) -> Result<Value, SubsystemError> {
 
 #[cfg(windows)]
 mod win {
-    use super::{json, profile_from, Value};
-    use crate::tweaks::{live::LiveBackend, runner, Plan};
+    use super::{Value, json, profile_from};
     use crate::SubsystemError;
+    use crate::tweaks::{Plan, live::LiveBackend, runner};
 
     fn err(msg: impl std::fmt::Display) -> SubsystemError {
         SubsystemError::Failed(msg.to_string())
@@ -79,7 +79,9 @@ mod win {
 
     pub fn apply(args: &Value) -> Result<Value, SubsystemError> {
         if args.get("confirm").and_then(Value::as_bool) != Some(true) {
-            return Err(SubsystemError::InvalidArguments("tweak_apply requires confirm=true".into()));
+            return Err(SubsystemError::InvalidArguments(
+                "tweak_apply requires confirm=true".into(),
+            ));
         }
         let plan: Plan = if let Some(path) = args.get("planPath").and_then(Value::as_str) {
             serde_json::from_slice(&std::fs::read(path).map_err(err)?).map_err(err)?
@@ -89,9 +91,17 @@ mod win {
             runner::make_plan(&profile, &mut backend).map_err(err)?.0
         };
         let (journal, path) = runner::apply_live(&plan, "Bun OS Tweaks").map_err(err)?;
-        let changed = journal.entries.iter().filter(|e| e.result == "applied").count();
-        let failed: Vec<_> = journal.entries.iter().filter(|e| e.result != "applied")
-            .map(|e| json!({"tweak": e.tweak, "result": e.result, "error": e.error})).collect();
+        let changed = journal
+            .entries
+            .iter()
+            .filter(|e| e.result == "applied")
+            .count();
+        let failed: Vec<_> = journal
+            .entries
+            .iter()
+            .filter(|e| e.result != "applied")
+            .map(|e| json!({"tweak": e.tweak, "result": e.result, "error": e.error}))
+            .collect();
         Ok(json!({
             "journalPath": path.to_string_lossy(),
             "restorePoint": journal.restore_point,
@@ -104,7 +114,9 @@ mod win {
     pub fn verify(args: &Value) -> Result<Value, SubsystemError> {
         let path = journal_path(args)?;
         let journal = serde_json::from_slice(&std::fs::read(&path).map_err(err)?).map_err(err)?;
-        Ok(json!({"journalPath": path.to_string_lossy(), "drift": runner::verify_journal(&journal)}))
+        Ok(
+            json!({"journalPath": path.to_string_lossy(), "drift": runner::verify_journal(&journal)}),
+        )
     }
 
     pub fn undo(args: &Value) -> Result<Value, SubsystemError> {
@@ -116,7 +128,8 @@ mod win {
     fn journal_path(args: &Value) -> Result<std::path::PathBuf, SubsystemError> {
         match args.get("journalPath").and_then(Value::as_str) {
             Some(p) => Ok(p.into()),
-            None => runner::latest_journal().ok_or_else(|| SubsystemError::Failed("no journal found".into())),
+            None => runner::latest_journal()
+                .ok_or_else(|| SubsystemError::Failed("no journal found".into())),
         }
     }
 }

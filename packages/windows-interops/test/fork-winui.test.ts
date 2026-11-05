@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // bun:winui on upstream Bun (src/fork/winui.ts), ported from the fork's test/js/bun/winui/winui.test.ts.
 import { describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 const isWindows = process.platform === "win32";
@@ -26,8 +27,15 @@ async function run(args: string[]) {
   return { stdout, stderr, exitCode };
 }
 
+// src/fork/winui.ts hosts XAML through ./winrt.ts, whose fork original depends on native COM
+// delegates (src/runtime/windows/com.rs) that upstream Bun does not ship; until it is ported the
+// window test cannot run.
+const hasWinrt = existsSync(
+  join(import.meta.dir, "..", "src", "fork", "winrt.ts"),
+);
+
 function hasWindowsAppRuntime() {
-  if (!isWindows) return false;
+  if (!isWindows || !hasWinrt) return false;
   const probe = Bun.spawnSync({
     cmd: [
       process.execPath,

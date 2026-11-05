@@ -415,7 +415,10 @@ pub fn encode_value(value: &str, value_type: &str) -> std::io::Result<(u32, Vec<
             }
             Ok((
                 kind::BINARY,
-                (0..hex.len()).step_by(2).map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap_or(0)).collect(),
+                (0..hex.len())
+                    .step_by(2)
+                    .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap_or(0))
+                    .collect(),
             ))
         }
         _ => Err(invalid("unsupported registry value type")),

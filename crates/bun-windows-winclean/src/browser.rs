@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Native Chrome inventory and isolated automation setup. Profile contents are never read.
-use yolo_process::NoWindow as _;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
@@ -10,6 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 use sysinfo::{ProcessesToUpdate, System};
+use yolo_process::NoWindow as _;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BrowserProcess {

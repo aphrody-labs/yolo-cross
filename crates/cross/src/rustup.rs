@@ -174,7 +174,9 @@ fn version(msg_info: &mut MessageInfo) -> Result<Version> {
         Some(version) => {
             semver::Version::parse(version).wrap_err_with(|| "failed to parse rustup version")
         }
-        None => eyre::bail!("failed to get rustup version"),
+        None => {
+            eyre::bail!("failed to get rustup version");
+        }
     }
 }
 
@@ -249,8 +251,8 @@ pub fn check_component<'a>(
                 false => None,
             }
         })
-        .map_or_else(
-            || Component::NotAvailable(component),
+        .map_or(
+            Component::NotAvailable(component),
             |installed| match installed {
                 true => Component::Installed(component),
                 false => Component::Available(component),
@@ -315,7 +317,9 @@ fn rustc_channel(version: &Version) -> Result<Channel> {
         "dev" => Ok(Channel::Dev),
         "beta" => Ok(Channel::Beta),
         "nightly" => Ok(Channel::Nightly),
-        x => eyre::bail!("unknown prerelease tag {x}"),
+        x => {
+            eyre::bail!("unknown prerelease tag {x}");
+        }
     }
 }
 

@@ -109,7 +109,7 @@ pub fn streaming_logs(steam_root: &Path) -> Vec<PathBuf> {
         })
         .filter_map(|e| Some((e.metadata().ok()?.modified().ok()?, e.path())))
         .collect();
-    logs.sort_by(|a, b| b.0.cmp(&a.0));
+    logs.sort_by_key(|entry| std::cmp::Reverse(entry.0));
     logs.into_iter().map(|(_, path)| path).collect()
 }
 

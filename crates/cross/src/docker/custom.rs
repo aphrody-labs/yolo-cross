@@ -129,7 +129,7 @@ impl<'a> Dockerfile<'a> {
                     .target_directory
                     .join(options.target.to_string());
                 create_target_dir(&target_dir)?;
-                let path = target_dir.join(format!("Dockerfile.{}-custom", &options.target));
+                let path = target_dir.join(format!("Dockerfile.{}-custom", options.target));
                 {
                     let mut file = file::write_file(&path, true)?;
                     file.write_all(content.as_bytes())?;

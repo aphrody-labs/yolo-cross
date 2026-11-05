@@ -239,7 +239,7 @@ fn process_try_comment(message: &str) -> cross::Result<(bool, TargetMatrixArgs)>
             return Ok((false, TargetMatrixArgs::parse_from(command.split(' '))));
         }
     }
-    eyre::bail!("no /ci try command found in comment")
+    eyre::bail!("no /ci try command found in comment");
 }
 
 #[derive(Serialize)]

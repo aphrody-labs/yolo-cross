@@ -6,8 +6,9 @@
 //! [`Error::AccessDenied`].
 
 pub use bunos_nt_proto::{
-    self as proto, Caps, DEVICE_PATH, EventsConfig, EventsHeader, IOCTL_BUNOS_CAPS, IOCTL_BUNOS_EVENTS_CONFIG,
-    IOCTL_BUNOS_EVENTS_READ, IOCTL_BUNOS_PING, IOCTL_BUNOS_VERSION, Kind, ProtoError, Record, ctl_code, source,
+    self as proto, Caps, DEVICE_PATH, EventsConfig, EventsHeader, IOCTL_BUNOS_CAPS,
+    IOCTL_BUNOS_EVENTS_CONFIG, IOCTL_BUNOS_EVENTS_READ, IOCTL_BUNOS_PING, IOCTL_BUNOS_VERSION,
+    Kind, ProtoError, Record, ctl_code, source,
 };
 
 #[derive(Debug)]
@@ -17,7 +18,11 @@ pub enum Error {
     /// The device exists but this process is not elevated (`ERROR_ACCESS_DENIED`; DACL SYSTEM + Administrators).
     AccessDenied,
     /// Any other Win32 failure, with the operation and the HRESULT text from windows-rs.
-    Win32 { op: &'static str, code: i32, message: String },
+    Win32 {
+        op: &'static str,
+        code: i32,
+        message: String,
+    },
     /// The driver answered with a layout this client rejects.
     Proto(ProtoError),
     /// Not Windows.
@@ -28,8 +33,13 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Error::NotLoaded => write!(f, "{DEVICE_PATH} not found: bunos.sys is not loaded"),
-            Error::AccessDenied => write!(f, "{DEVICE_PATH} is restricted to SYSTEM and Administrators"),
-            Error::Win32 { op, code, message } => write!(f, "{op} failed ({code:#010x}): {message}"),
+            Error::AccessDenied => write!(
+                f,
+                "{DEVICE_PATH} is restricted to SYSTEM and Administrators"
+            ),
+            Error::Win32 { op, code, message } => {
+                write!(f, "{op} failed ({code:#010x}): {message}")
+            }
             Error::Proto(e) => write!(f, "bunos.sys reply rejected: {e}"),
             Error::Unsupported => write!(f, "bunos.sys exists only on Windows"),
         }
@@ -87,22 +97,36 @@ pub fn decode_batch(bytes: &[u8]) -> Result<Batch, ProtoError> {
     for r in records {
         events.push(Event::from(&r?));
     }
-    Ok(Batch { events, dropped: header.dropped, pending: header.pending })
+    Ok(Batch {
+        events,
+        dropped: header.dropped,
+        pending: header.pending,
+    })
 }
 
 #[cfg(windows)]
 mod imp {
-    use super::{Batch, Caps, DEVICE_PATH, Error, EventsConfig, IOCTL_BUNOS_CAPS, IOCTL_BUNOS_EVENTS_CONFIG};
-    use super::{IOCTL_BUNOS_EVENTS_READ, IOCTL_BUNOS_PING, IOCTL_BUNOS_VERSION, Record, decode_batch, proto};
+    use super::{
+        Batch, Caps, DEVICE_PATH, Error, EventsConfig, IOCTL_BUNOS_CAPS, IOCTL_BUNOS_EVENTS_CONFIG,
+    };
+    use super::{
+        IOCTL_BUNOS_EVENTS_READ, IOCTL_BUNOS_PING, IOCTL_BUNOS_VERSION, Record, decode_batch, proto,
+    };
     use windows::Win32::Foundation::{
         CloseHandle, ERROR_ACCESS_DENIED, ERROR_FILE_NOT_FOUND, GENERIC_READ, GENERIC_WRITE, HANDLE,
     };
-    use windows::Win32::Storage::FileSystem::{CreateFileW, FILE_FLAGS_AND_ATTRIBUTES, FILE_SHARE_NONE, OPEN_EXISTING};
+    use windows::Win32::Storage::FileSystem::{
+        CreateFileW, FILE_FLAGS_AND_ATTRIBUTES, FILE_SHARE_NONE, OPEN_EXISTING,
+    };
     use windows::Win32::System::IO::DeviceIoControl;
     use windows::core::HSTRING;
 
     fn win32(op: &'static str, e: windows::core::Error) -> Error {
-        Error::Win32 { op, code: e.code().0, message: e.message() }
+        Error::Win32 {
+            op,
+            code: e.code().0,
+            message: e.message(),
+        }
     }
 
     /// An open handle on `\\.\BunOS`, closed on drop. The last handle closed disables every event source.
@@ -264,9 +288,20 @@ mod tests {
 
     #[test]
     fn decode_batch_owns_names() {
-        let mut bytes = EventsHeader { abi: proto::ABI, count: 1, dropped: 3, pending: 7 }.encode().to_vec();
+        let mut bytes = EventsHeader {
+            abi: proto::ABI,
+            count: 1,
+            dropped: 3,
+            pending: 7,
+        }
+        .encode()
+        .to_vec();
         let mut r = Record::new(Kind::ImageLoad, 10, 4);
-        r.set_name(&"\\SystemRoot\\System32\\ntdll.dll".encode_utf16().collect::<Vec<_>>());
+        r.set_name(
+            &"\\SystemRoot\\System32\\ntdll.dll"
+                .encode_utf16()
+                .collect::<Vec<_>>(),
+        );
         r.a0 = 0x7ff0_0000_0000;
         let mut rec = [0u8; Record::SIZE];
         r.encode(&mut rec);
@@ -295,14 +330,25 @@ mod tests {
         let caps = device.configure(source::PROCESS | source::IMAGE).unwrap();
         assert_eq!(caps.sources_active, source::PROCESS | source::IMAGE);
         // Spawn a process so there is at least one create + image event to drain.
-        let _ = std::process::Command::new("cmd.exe").args(["/c", "exit"]).status();
+        let _ = std::process::Command::new("cmd.exe")
+            .args(["/c", "exit"])
+            .status();
         let batch = device.read_events(512).unwrap();
-        assert!(batch.events.iter().any(|e| e.kind == Kind::ProcessCreate && e.name.ends_with("cmd.exe")));
+        assert!(
+            batch
+                .events
+                .iter()
+                .any(|e| e.kind == Kind::ProcessCreate && e.name.ends_with("cmd.exe"))
+        );
         assert!(batch.events.iter().any(|e| e.kind == Kind::ImageLoad));
         assert_eq!(device.configure(0).unwrap().sources_active, 0);
         // Strict parsing on the kernel side: a bad ABI is refused.
         let mut bad = EventsConfig { sources: 0 }.encode();
         bad[0] = 9;
-        assert!(device.ioctl(IOCTL_BUNOS_EVENTS_CONFIG, &bad, &mut [0u8; Caps::SIZE]).is_err());
+        assert!(
+            device
+                .ioctl(IOCTL_BUNOS_EVENTS_CONFIG, &bad, &mut [0u8; Caps::SIZE])
+                .is_err()
+        );
     }
 }

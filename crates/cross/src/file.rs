@@ -92,7 +92,7 @@ impl PathExt for Path {
             for component in self.components() {
                 match component {
                     Component::Prefix(prefix) => {
-                        eyre::bail!("unix paths cannot handle windows prefix {prefix:?}.")
+                        eyre::bail!("unix paths cannot handle windows prefix {prefix:?}.");
                     }
                     Component::RootDir => output = "/".to_owned(),
                     Component::CurDir => push(&mut output, "."),

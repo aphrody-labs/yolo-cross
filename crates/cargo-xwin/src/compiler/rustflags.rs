@@ -102,6 +102,9 @@ mod tests {
     use fs_err as fs;
     use std::collections::BTreeMap;
 
+    /// (case name, config file contents, extra environment, expected cfgs)
+    type RustflagsCase<'a> = (&'a str, String, Vec<(&'a str, &'a str)>, Vec<&'a str>);
+
     // Use real Cargo compilation to test its merge with our exported flags.
     // A host target and an empty crate avoid SDK, linker and nightly dependencies.
     #[test]
@@ -118,7 +121,7 @@ mod tests {
         );
         let target_config = format!("[target.{target}]\nrustflags = [\"--cfg=from_target\"]\n");
         let build_config = "[build]\nrustflags = [\"--cfg=from_build\"]\n";
-        let cases: Vec<(&str, String, Vec<(&str, &str)>, Vec<&str>)> = vec![
+        let cases: Vec<RustflagsCase<'_>> = vec![
             ("array", target_config.clone(), vec![], vec!["from_target"]),
             (
                 "string",

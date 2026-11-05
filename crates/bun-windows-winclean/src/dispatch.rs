@@ -833,14 +833,9 @@ pub fn call_rust(tool: &str, arguments: Value) -> Result<Value, SubsystemError> 
             .map_err(failed)?,
         )),
         "window_close" => {
-            yolo_capture::close_window(
-                arguments
-                    .get("hwnd")
-                    .and_then(Value::as_u64)
-                    .ok_or_else(|| {
-                        SubsystemError::InvalidArguments("window_close requires hwnd".into())
-                    })? as usize,
-            )
+            yolo_capture::close_window(arguments.get("hwnd").and_then(Value::as_u64).ok_or_else(
+                || SubsystemError::InvalidArguments("window_close requires hwnd".into()),
+            )? as usize)
             .map_err(failed)?;
             Ok(serde_json::json!({"success":true}))
         }

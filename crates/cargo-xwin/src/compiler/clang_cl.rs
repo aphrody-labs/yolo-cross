@@ -49,13 +49,13 @@ impl<'a> ClangCl<'a> {
             .or_else(|| env::current_dir().ok())
             .unwrap();
         let mut targets = cargo.target.clone();
-        if targets.is_empty() {
-            if let Some(build_target) = default_build_target_from_config(&workdir)? {
-                // if no target is specified, use the default build target
-                // Note that this is required, otherwise it may fail with link errors
-                cmd.arg("--target").arg(&build_target);
-                targets.push(build_target);
-            }
+        if targets.is_empty()
+            && let Some(build_target) = default_build_target_from_config(&workdir)?
+        {
+            // if no target is specified, use the default build target
+            // Note that this is required, otherwise it may fail with link errors
+            cmd.arg("--target").arg(&build_target);
+            targets.push(build_target);
         }
 
         for target in &targets {
@@ -670,7 +670,7 @@ mod tests {
             let clang = shlex::split(&clang).unwrap();
             assert_eq!(msvc.len(), 10);
             assert_eq!(clang.len(), 5);
-            for (pair, flag) in msvc.chunks_exact(2).zip(clang) {
+            for (pair, flag) in msvc.as_chunks::<2>().0.iter().zip(clang) {
                 assert_eq!(pair[0], "/imsvc");
                 assert!(pair[1].starts_with(&format!("{root}/")));
                 assert_eq!(flag, format!("-I{}", pair[1]));

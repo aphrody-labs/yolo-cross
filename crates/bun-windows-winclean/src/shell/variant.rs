@@ -30,18 +30,13 @@ const DISP_E_PARAMNOTFOUND: i32 = 0x8002_0004_u32 as i32;
 /// An owned `VARIANT` cleared on drop (layout-identical to `VARIANT`, so a slice of them is a
 /// valid `DISPPARAMS::rgvarg`).
 #[repr(transparent)]
+#[derive(Default)]
 pub(crate) struct OwnedVariant(pub(crate) VARIANT);
 
 impl Drop for OwnedVariant {
     fn drop(&mut self) {
         // SAFETY: releases whatever BSTR/interface/array the variant owns.
         let _ = unsafe { VariantClear(&mut self.0) };
-    }
-}
-
-impl Default for OwnedVariant {
-    fn default() -> Self {
-        Self(VARIANT::default())
     }
 }
 
@@ -61,7 +56,10 @@ impl OwnedVariant {
     }
 }
 
-fn set(vt: VARENUM, fill: impl FnOnce(&mut windows::Win32::System::Variant::VARIANT_0_0_0)) -> OwnedVariant {
+fn set(
+    vt: VARENUM,
+    fill: impl FnOnce(&mut windows::Win32::System::Variant::VARIANT_0_0_0),
+) -> OwnedVariant {
     let mut variant = VARIANT::default();
     // SAFETY: writes the tag and the matching union member of a zeroed variant.
     unsafe {
@@ -78,7 +76,9 @@ fn set(vt: VARENUM, fill: impl FnOnce(&mut windows::Win32::System::Variant::VARI
 pub(crate) fn from_json(value: &Value) -> OwnedVariant {
     match value {
         Value::Null => set(VT_ERROR, |u| u.scode = DISP_E_PARAMNOTFOUND),
-        Value::Bool(flag) => set(VT_BOOL, |u| u.boolVal = if *flag { VARIANT_TRUE } else { VARIANT_FALSE }),
+        Value::Bool(flag) => set(VT_BOOL, |u| {
+            u.boolVal = if *flag { VARIANT_TRUE } else { VARIANT_FALSE }
+        }),
         Value::Number(number) => {
             if let Some(int) = number.as_i64() {
                 match i32::try_from(int) {
@@ -90,10 +90,14 @@ pub(crate) fn from_json(value: &Value) -> OwnedVariant {
                 set(VT_R8, |u| u.dblVal = float)
             }
         }
-        Value::String(text) => set(VT_BSTR, |u| u.bstrVal = ManuallyDrop::new(BSTR::from(text.as_str()))),
+        Value::String(text) => set(VT_BSTR, |u| {
+            u.bstrVal = ManuallyDrop::new(BSTR::from(text.as_str()))
+        }),
         other => {
             let text = other.to_string();
-            set(VT_BSTR, |u| u.bstrVal = ManuallyDrop::new(BSTR::from(text.as_str())))
+            set(VT_BSTR, |u| {
+                u.bstrVal = ManuallyDrop::new(BSTR::from(text.as_str()))
+            })
         }
     }
 }
@@ -150,7 +154,7 @@ pub(crate) fn to_json(variant: &VARIANT) -> Value {
             VT_ERROR => Value::Null,
             VT_BOOL => Value::Bool(u.boolVal.0 != 0),
             VT_BSTR => Value::String(u.bstrVal.to_string()),
-            VT_I1 => Value::from(u.cVal as i8),
+            VT_I1 => Value::from(u.cVal),
             VT_UI1 => Value::from(u.bVal),
             VT_I2 => Value::from(u.iVal),
             VT_UI2 => Value::from(u.uiVal),
@@ -158,7 +162,9 @@ pub(crate) fn to_json(variant: &VARIANT) -> Value {
             VT_UI4 | VT_UINT => Value::from(u.ulVal),
             VT_I8 => Value::from(u.llVal),
             VT_UI8 => Value::from(u.ullVal),
-            VT_R4 => serde_json::Number::from_f64(f64::from(u.fltVal)).map_or(Value::Null, Value::Number),
+            VT_R4 => {
+                serde_json::Number::from_f64(f64::from(u.fltVal)).map_or(Value::Null, Value::Number)
+            }
             VT_R8 => serde_json::Number::from_f64(u.dblVal).map_or(Value::Null, Value::Number),
             VT_DISPATCH => match &*u.pdispVal {
                 Some(dispatch) => {

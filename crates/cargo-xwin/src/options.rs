@@ -204,10 +204,10 @@ fn msvc_targets(cmd: &Command) -> Vec<String> {
             arg.to_str()
                 .and_then(|value| value.strip_prefix("--target="))
         };
-        if let Some(target) = target {
-            if target.contains("msvc") {
-                targets.push(target.to_owned());
-            }
+        if let Some(target) = target
+            && target.contains("msvc")
+        {
+            targets.push(target.to_owned());
         }
     }
 

@@ -6,8 +6,8 @@
 //! `tcp` modules); no `powershell.exe`, `sc.exe`, `wevtutil`, `netstat`, `reg.exe`, `where.exe`
 //! or `explorer.exe` process is started for them.
 
-use yolo_process::NoWindow as _;
 use std::io;
+use yolo_process::NoWindow as _;
 
 use serde::Serialize;
 use sysinfo::{Disks, Networks, Signal, System};

@@ -249,24 +249,26 @@ impl Zig {
             if content_bytes[0..2] != [255, 254] {
                 bail!(
                     "linker response file `{}` didn't start with a utf16 BOM",
-                    &arg
+                    arg
                 );
             }
             let content_utf16: Vec<u16> = content_bytes[2..]
-                .chunks_exact(2)
+                .as_chunks::<2>()
+                .0
+                .iter()
                 .map(|a| u16::from_ne_bytes([a[0], a[1]]))
                 .collect();
             String::from_utf16(&content_utf16).with_context(|| {
                 format!(
                     "linker response file `{}` didn't contain valid utf16 content",
-                    &arg
+                    arg
                 )
             })?
         } else {
             String::from_utf8(content_bytes).with_context(|| {
                 format!(
                     "linker response file `{}` didn't contain valid utf8 content",
-                    &arg
+                    arg
                 )
             })?
         };

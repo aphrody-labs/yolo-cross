@@ -133,6 +133,7 @@ fn scratch() {
     let Some((hwnd, title)) = target else {
         eprintln!("scratch window did not appear");
         let _ = child.kill();
+        let _ = child.wait();
         return;
     };
     println!("scratch window: {hwnd} {title}");

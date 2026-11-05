@@ -476,7 +476,9 @@ impl ContainerState {
             "dead" => Ok(ContainerState::Dead),
             "exited" => Ok(ContainerState::Exited),
             "" => Ok(ContainerState::DoesNotExist),
-            _ => eyre::bail!("unknown container state: got {state}"),
+            _ => {
+                eyre::bail!("unknown container state: got {state}");
+            }
         }
     }
 
@@ -1435,7 +1437,7 @@ fn dockerinfo_parse_root_mount_path(
     let source = if let Some(path) = str_at("/0/GraphDriver/Data/MergedDir") {
         let driver_name = driver_name.ok_or_else(|| eyre::eyre!("no driver name found"))?;
         if !driver_name.to_lowercase().contains("overlay") {
-            eyre::bail!("want driver overlay2, got {driver_name}")
+            eyre::bail!("want driver overlay2, got {driver_name}");
         }
         PathBuf::from(path)
     } else if snapshot_driver.is_some() || !has_driver_data {
@@ -1450,10 +1452,14 @@ fn dockerinfo_parse_root_mount_path(
     } else {
         match driver_name {
             Some(name) if !name.to_lowercase().contains("overlay") => {
-                eyre::bail!("want driver overlay2, got {name}")
+                eyre::bail!("want driver overlay2, got {name}");
             }
-            Some(_) => eyre::bail!("No merge directory found"),
-            None => eyre::bail!("no driver name found"),
+            Some(_) => {
+                eyre::bail!("No merge directory found");
+            }
+            None => {
+                eyre::bail!("no driver name found");
+            }
         }
     };
 

@@ -4,10 +4,11 @@
 
 use std::{io, path::Path};
 
-use yolo_process::NoWindow as _;
 use windows::Win32::System::Restore::{
-    APPLICATION_INSTALL, BEGIN_SYSTEM_CHANGE, END_SYSTEM_CHANGE, RESTOREPOINTINFOW, SRSetRestorePointW, STATEMGRSTATUS,
+    APPLICATION_INSTALL, BEGIN_SYSTEM_CHANGE, END_SYSTEM_CHANGE, RESTOREPOINTINFOW,
+    SRSetRestorePointW, STATEMGRSTATUS,
 };
+use yolo_process::NoWindow as _;
 
 use super::RegHive;
 
@@ -30,7 +31,11 @@ pub fn create_restore_point(description: &str) -> io::Result<i64> {
     if !unsafe { SRSetRestorePointW(&info, &mut status) }.as_bool() {
         return Err(io::Error::from_raw_os_error(status.nStatus.0 as i32));
     }
-    let end = RESTOREPOINTINFOW { dwEventType: END_SYSTEM_CHANGE, llSequenceNumber: status.llSequenceNumber, ..info };
+    let end = RESTOREPOINTINFOW {
+        dwEventType: END_SYSTEM_CHANGE,
+        llSequenceNumber: status.llSequenceNumber,
+        ..info
+    };
     let mut end_status = STATEMGRSTATUS::default();
     // SAFETY: as above.
     let _ = unsafe { SRSetRestorePointW(&end, &mut end_status) };
@@ -46,7 +51,12 @@ pub fn export_key(h: RegHive, key: &str, dir: &Path, n: usize) -> io::Result<Opt
     };
     let full = format!(r"{root}\{key}");
     let file = dir.join(format!("{n:03}.reg"));
-    let out = std::process::Command::new("reg").no_window().args(["export", &full]).arg(&file).arg("/y").output()?;
+    let out = std::process::Command::new("reg")
+        .no_window()
+        .args(["export", &full])
+        .arg(&file)
+        .arg("/y")
+        .output()?;
     if out.status.success() {
         Ok(Some(format!("{full} -> {}", file.display())))
     } else {

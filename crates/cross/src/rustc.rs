@@ -321,7 +321,9 @@ impl std::str::FromStr for Toolchain {
                     [Some(y), Some(m), Some(d)] if dig(y) && dig(m) && dig(d) => {
                         format!("{y}-{m}-{d}")
                     }
-                    _ => eyre::bail!("invalid toolchain `{s}`"),
+                    _ => {
+                        eyre::bail!("invalid toolchain `{s}`");
+                    }
                 };
                 Ok(Toolchain {
                     channel: channel.to_owned(),

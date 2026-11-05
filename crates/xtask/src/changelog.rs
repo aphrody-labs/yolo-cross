@@ -63,7 +63,7 @@ impl IdType {
     }
 
     fn max_number(&self) -> u64 {
-        self.numbers().iter().max().map_or_else(|| 0, |v| *v)
+        self.numbers().iter().max().map_or(0, |v| *v)
     }
 
     fn parse_stem(file_stem: &str) -> cross::Result<IdType> {
@@ -124,7 +124,9 @@ impl ChangelogType {
             "Fixed" => Self::Fixed,
             "Removed" => Self::Removed,
             "Internal" => Self::Internal,
-            _ => eyre::bail!("invalid header section, got {s}"),
+            _ => {
+                eyre::bail!("invalid header section, got {s}");
+            }
         })
     }
 
@@ -416,7 +418,9 @@ fn read_changelog(root: &Path) -> cross::Result<(String, Changes, String)> {
         } else if let Some(entry) = line.strip_prefix("- ") {
             match kind {
                 Some(kind) => changes.push(ChangelogEntry::parse(entry, kind)?),
-                None => eyre::bail!("changelog entry \"{line}\" without header"),
+                None => {
+                    eyre::bail!("changelog entry \"{line}\" without header");
+                }
             }
         } else if !(line.is_empty() || line == "## [Unreleased] - ReleaseDate") {
             eyre::bail!("invalid changelog entry, got \"{line}\"");

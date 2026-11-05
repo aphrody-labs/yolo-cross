@@ -281,15 +281,50 @@ if (task === "aot:check" || task === "aot:explain") {
   process.exit(failed ? 1 : 0);
 }
 
+// Features whose dependencies live outside this repository are declared in the owning crate's
+// `[package.metadata.yolo] external-features`; every other feature of every workspace member is
+// enabled, which is `--all-features` minus the features this checkout cannot resolve.
+async function workspaceFeatures(): Promise<string[]> {
+  const proc = Bun.spawn(
+    ["cargo", "metadata", "--format-version", "1", "--no-deps", "--locked"],
+    { cwd: root, stdout: "pipe", stderr: "inherit" },
+  );
+  const [text, code] = await Promise.all([
+    new Response(proc.stdout).text(),
+    proc.exited,
+  ]);
+  if (code !== 0) throw new Error("cargo metadata failed");
+  const metadata = JSON.parse(text) as {
+    packages: {
+      name: string;
+      features: Record<string, string[]>;
+      metadata?: { yolo?: { "external-features"?: string[] } } | null;
+    }[];
+  };
+  const features: string[] = [];
+  for (const pkg of metadata.packages) {
+    const external = new Set(pkg.metadata?.yolo?.["external-features"] ?? []);
+    for (const feature of Object.keys(pkg.features)) {
+      if (feature !== "default" && !external.has(feature))
+        features.push(`${pkg.name}/${feature}`);
+    }
+  }
+  return features;
+}
+
+const featureArgs = ["test", "clippy"].includes(task)
+  ? ["--features", (await workspaceFeatures()).join(",")]
+  : [];
+
 const cargoArgs: Partial<Record<Task, string[]>> = {
   check: ["check", "--workspace", "--all-targets", "--locked"],
-  test: ["test", "--workspace", "--all-targets", "--all-features", "--locked"],
+  test: ["test", "--workspace", "--all-targets", ...featureArgs, "--locked"],
   fmt: ["fmt", "--all", "--", "--check"],
   clippy: [
     "clippy",
     "--workspace",
     "--all-targets",
-    "--all-features",
+    ...featureArgs,
     "--locked",
     "--",
     "-D",
@@ -322,7 +357,10 @@ let failed = cargoStatus !== 0;
 for (const repo of workspace.repositories.filter(
   (entry) => entry.kind === "bun-package",
 )) {
-  const status = await run(["bun", "test"], resolve(root, repo.path));
+  const status = await run(
+    ["bun", "test", "--pass-with-no-tests"],
+    resolve(root, repo.path),
+  );
   if (status !== 0) failed = true;
 }
 process.exit(failed ? 1 : 0);
