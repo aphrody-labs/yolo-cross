@@ -1,0 +1,47 @@
+{
+  "name": "yolo-cross-workspace",
+  "private": true,
+  "packageManager": "bun@1.4.4-canary.1",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.4.4"
+  },
+  "workspaces": [
+    "packages/yolo-hardware-db",
+    "packages/buncc",
+    "packages/cross-plugins",
+    "packages/android-pipeline",
+    "packages/wasm",
+    "packages/windows-interops",
+    "packages/winclean",
+    "packages/kernel-client",
+    "packages/bun-dotnet-windows",
+    "packages/bun-android"
+  ],
+  "catalog": {
+    "@types/bun": "1.4.4"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/node": "26.6.6"
+  },
+  "scripts": {
+    "list": "bun orchestrate.ts list",
+    "check": "bun orchestrate.ts check",
+    "test": "bun orchestrate.ts test",
+    "fmt": "bun orchestrate.ts bun:fmt",
+    "fmt:rust": "bun orchestrate.ts fmt",
+    "clippy": "bun orchestrate.ts clippy",
+    "lint": "bun orchestrate.ts lint",
+    "bun:check": "bun orchestrate.ts bun:check",
+    "bun:fmt": "bun orchestrate.ts bun:fmt",
+    "bun:lint": "bun orchestrate.ts bun:lint",
+    "aot:check": "bun orchestrate.ts aot:check",
+    "aot:explain": "bun orchestrate.ts aot:explain",
+    "bun:patches": "bun scripts/bun-patches.ts",
+    "windows:chromium:doctor": "pwsh -NoProfile -File tools/windows/chromium-toolchain-status.ps1",
+    "cross:windows": "bun tools/cross/windows.ts",
+    "targets": "bun orchestrate.ts targets",
+    "submodules": "bun orchestrate.ts submodules"
+  }
+}

@@ -1,0 +1,373 @@
+[
+  {
+    "id": "intel-core-ultra-9-285k",
+    "name": "Intel Core Ultra 9 285K",
+    "vendor": "Intel",
+    "family": "Arrow Lake-S",
+    "architecture": "x86_64",
+    "codeName": "Arrow Lake",
+    "socket": "LGA1851",
+    "cores": {
+      "total": 24,
+      "performance": 8,
+      "efficiency": 16,
+      "threads": 24
+    },
+    "frequencies": {
+      "baseMhz": 3700,
+      "boostMhz": 5700,
+      "allCoreBoostMhz": 5400
+    },
+    "cache": {
+      "l2Kb": 40960,
+      "l3Kb": 36864
+    },
+    "processNode": "TSMC N3B (Compute Die)",
+    "tdpWatts": 125,
+    "maxTurboPowerWatts": 250,
+    "cpuid": {
+      "family": 6,
+      "model": 197,
+      "stepping": 2,
+      "signatureHex": "0x000C0652"
+    },
+    "instructionSets": ["AVX2", "AVX-VNNI", "FMA3", "SHA-NI", "AES-NI"],
+    "npu": {
+      "name": "Intel AI Boost NPU 3",
+      "tops": 13
+    },
+    "integratedGpu": "Intel Graphics (4 Xe Cores, Alchemist)",
+    "releaseDate": "2024-10-24"
+  },
+  {
+    "id": "intel-core-ultra-7-265k",
+    "name": "Intel Core Ultra 7 265K",
+    "vendor": "Intel",
+    "family": "Arrow Lake-S",
+    "architecture": "x86_64",
+    "codeName": "Arrow Lake",
+    "socket": "LGA1851",
+    "cores": {
+      "total": 20,
+      "performance": 8,
+      "efficiency": 12,
+      "threads": 20
+    },
+    "frequencies": {
+      "baseMhz": 3900,
+      "boostMhz": 5500
+    },
+    "cache": {
+      "l2Kb": 36864,
+      "l3Kb": 30720
+    },
+    "processNode": "TSMC N3B",
+    "tdpWatts": 125,
+    "maxTurboPowerWatts": 250,
+    "cpuid": {
+      "family": 6,
+      "model": 197,
+      "stepping": 2,
+      "signatureHex": "0x000C0652"
+    },
+    "instructionSets": ["AVX2", "AVX-VNNI", "AES-NI"],
+    "npu": {
+      "name": "Intel AI Boost NPU 3",
+      "tops": 13
+    },
+    "releaseDate": "2024-10-24"
+  },
+  {
+    "id": "intel-xeon-6980p",
+    "name": "Intel Xeon 6980P",
+    "vendor": "Intel",
+    "family": "Granite Rapids-AP",
+    "architecture": "x86_64",
+    "codeName": "Granite Rapids",
+    "socket": "LGA7529",
+    "cores": {
+      "total": 128,
+      "performance": 128,
+      "efficiency": 0,
+      "threads": 256
+    },
+    "frequencies": {
+      "baseMhz": 2000,
+      "boostMhz": 3900
+    },
+    "cache": {
+      "l3Kb": 516096
+    },
+    "processNode": "Intel 3",
+    "tdpWatts": 500,
+    "cpuid": {
+      "family": 6,
+      "model": 173,
+      "stepping": 1,
+      "signatureHex": "0x000A06D1"
+    },
+    "instructionSets": ["AVX-512", "AMX-BF16", "AMX-INT8", "AMX-FP16", "AVX-VNNI"],
+    "releaseDate": "2024-09-24"
+  },
+  {
+    "id": "amd-ryzen-9-9950x",
+    "name": "AMD Ryzen 9 9950X",
+    "vendor": "AMD",
+    "family": "Zen 5",
+    "architecture": "x86_64",
+    "codeName": "Granite Ridge",
+    "socket": "AM5",
+    "cores": {
+      "total": 16,
+      "threads": 32
+    },
+    "frequencies": {
+      "baseMhz": 4300,
+      "boostMhz": 5700
+    },
+    "cache": {
+      "l2Kb": 16384,
+      "l3Kb": 65536
+    },
+    "processNode": "TSMC 4nm (CCD) / TSMC 6nm (IOD)",
+    "tdpWatts": 170,
+    "cpuid": {
+      "family": 26,
+      "model": 68,
+      "stepping": 0,
+      "signatureHex": "0x00B40F40"
+    },
+    "instructionSets": ["AVX-512", "AVX2", "FMA3", "BMI2", "SHA", "AES"],
+    "integratedGpu": "AMD Radeon Graphics (2 CUs, RDNA 2)",
+    "releaseDate": "2024-08-15"
+  },
+  {
+    "id": "amd-ryzen-7-9800x3d",
+    "name": "AMD Ryzen 7 9800X3D",
+    "vendor": "AMD",
+    "family": "Zen 5",
+    "architecture": "x86_64",
+    "codeName": "Granite Ridge X3D",
+    "socket": "AM5",
+    "cores": {
+      "total": 8,
+      "threads": 16
+    },
+    "frequencies": {
+      "baseMhz": 4700,
+      "boostMhz": 5200
+    },
+    "cache": {
+      "l2Kb": 8192,
+      "l3Kb": 98304
+    },
+    "processNode": "TSMC 4nm",
+    "tdpWatts": 120,
+    "cpuid": {
+      "family": 26,
+      "model": 68,
+      "stepping": 0,
+      "signatureHex": "0x00B40F40"
+    },
+    "instructionSets": ["AVX-512", "AVX2", "FMA3", "SHA", "AES"],
+    "releaseDate": "2024-11-07"
+  },
+  {
+    "id": "amd-epyc-9655",
+    "name": "AMD EPYC 9655",
+    "vendor": "AMD",
+    "family": "Turin",
+    "architecture": "x86_64",
+    "codeName": "Turin Zen 5",
+    "socket": "SP5",
+    "cores": {
+      "total": 96,
+      "threads": 192
+    },
+    "frequencies": {
+      "baseMhz": 2600,
+      "boostMhz": 4500
+    },
+    "cache": {
+      "l3Kb": 393216
+    },
+    "processNode": "TSMC 4nm",
+    "tdpWatts": 400,
+    "cpuid": {
+      "family": 26,
+      "model": 32,
+      "stepping": 0,
+      "signatureHex": "0x00B20F00"
+    },
+    "instructionSets": ["AVX-512", "AVX2", "AMX-like VNNI", "SEV-SNP"],
+    "releaseDate": "2024-10-10"
+  },
+  {
+    "id": "qualcomm-snapdragon-x-elite-x1e-84-100",
+    "name": "Qualcomm Snapdragon X Elite (X1E-84-100)",
+    "vendor": "Qualcomm",
+    "family": "Oryon",
+    "architecture": "arm64",
+    "codeName": "Hamoa",
+    "socket": "BGA",
+    "cores": {
+      "total": 12,
+      "performance": 12,
+      "threads": 12
+    },
+    "frequencies": {
+      "baseMhz": 3800,
+      "boostMhz": 4200
+    },
+    "cache": {
+      "l2Kb": 43008,
+      "systemLevelCacheMb": 6
+    },
+    "processNode": "TSMC 4nm N4P",
+    "tdpWatts": 45,
+    "instructionSets": ["ARMv8.7-A", "NEON", "SVE2"],
+    "npu": {
+      "name": "Qualcomm Hexagon NPU",
+      "tops": 45
+    },
+    "integratedGpu": "Qualcomm Adreno X1-85 (4.6 TFLOPS)",
+    "releaseDate": "2024-06-18"
+  },
+  {
+    "id": "apple-m4-max",
+    "name": "Apple M4 Max",
+    "vendor": "Apple",
+    "family": "M4",
+    "architecture": "arm64",
+    "codeName": "Ibiza",
+    "socket": "BGA / SoC",
+    "cores": {
+      "total": 16,
+      "performance": 12,
+      "efficiency": 4,
+      "threads": 16
+    },
+    "frequencies": {
+      "baseMhz": 2800,
+      "boostMhz": 4500
+    },
+    "cache": {
+      "systemLevelCacheMb": 64
+    },
+    "processNode": "TSMC 3nm N3E",
+    "tdpWatts": 75,
+    "instructionSets": ["ARMv9.2-A", "SME", "SME2", "NEON"],
+    "npu": {
+      "name": "Apple Neural Engine (16-core)",
+      "tops": 38
+    },
+    "integratedGpu": "Apple M4 Max GPU (40 Cores, HW Ray Tracing)",
+    "releaseDate": "2024-10-30"
+  },
+  {
+    "id": "apple-m4-pro",
+    "name": "Apple M4 Pro",
+    "vendor": "Apple",
+    "family": "M4",
+    "architecture": "arm64",
+    "codeName": "Palma",
+    "socket": "BGA / SoC",
+    "cores": {
+      "total": 14,
+      "performance": 10,
+      "efficiency": 4,
+      "threads": 14
+    },
+    "frequencies": {
+      "baseMhz": 2800,
+      "boostMhz": 4500
+    },
+    "processNode": "TSMC 3nm N3E",
+    "tdpWatts": 45,
+    "instructionSets": ["ARMv9.2-A", "SME", "SME2", "NEON"],
+    "npu": {
+      "name": "Apple Neural Engine (16-core)",
+      "tops": 38
+    },
+    "integratedGpu": "Apple M4 Pro GPU (20 Cores)",
+    "releaseDate": "2024-10-30"
+  },
+  {
+    "id": "apple-m4",
+    "name": "Apple M4",
+    "vendor": "Apple",
+    "family": "M4",
+    "architecture": "arm64",
+    "codeName": "Donan",
+    "socket": "BGA / SoC",
+    "cores": {
+      "total": 10,
+      "performance": 4,
+      "efficiency": 6,
+      "threads": 10
+    },
+    "frequencies": {
+      "baseMhz": 2800,
+      "boostMhz": 4410
+    },
+    "processNode": "TSMC 3nm N3E",
+    "tdpWatts": 25,
+    "instructionSets": ["ARMv9.2-A", "SME", "SME2", "NEON"],
+    "npu": {
+      "name": "Apple Neural Engine (16-core)",
+      "tops": 38
+    },
+    "integratedGpu": "Apple M4 GPU (10 Cores, Dynamic Caching)",
+    "releaseDate": "2024-05-07"
+  },
+  {
+    "id": "aws-graviton-4",
+    "name": "AWS Graviton 4",
+    "vendor": "Amazon",
+    "family": "Neoverse V2",
+    "architecture": "arm64",
+    "codeName": "Graviton4",
+    "cores": {
+      "total": 96,
+      "threads": 96
+    },
+    "frequencies": {
+      "baseMhz": 2800,
+      "boostMhz": 3000
+    },
+    "cache": {
+      "l2Kb": 196608
+    },
+    "processNode": "TSMC 4nm",
+    "tdpWatts": 200,
+    "instructionSets": ["ARMv9.0-A", "SVE2", "BFloat16", "MatMul"],
+    "releaseDate": "2024-07-10"
+  },
+  {
+    "id": "mediatek-dimensity-9400",
+    "name": "MediaTek Dimensity 9400",
+    "vendor": "MediaTek",
+    "family": "Cortex-X925",
+    "architecture": "arm64",
+    "codeName": "MT6991",
+    "cores": {
+      "total": 8,
+      "performance": 8,
+      "efficiency": 0,
+      "threads": 8
+    },
+    "frequencies": {
+      "baseMhz": 2400,
+      "boostMhz": 3620
+    },
+    "processNode": "TSMC 3nm N3E",
+    "tdpWatts": 15,
+    "instructionSets": ["ARMv9.2-A", "SVE2", "NEON"],
+    "npu": {
+      "name": "MediaTek NPU 890",
+      "tops": 50
+    },
+    "integratedGpu": "ARM Immortalis-G925 MC12",
+    "releaseDate": "2024-10-09"
+  }
+]

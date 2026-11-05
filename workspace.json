@@ -1,0 +1,163 @@
+{
+  "$schema": "./workspace.schema.json",
+  "schemaVersion": 1,
+  "repositories": [
+    { "name": "cross", "path": ".", "kind": "cargo", "targetCatalog": true },
+    {
+      "name": "xtask",
+      "path": "crates/xtask",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "cargo-xwin",
+      "path": "crates/cargo-xwin",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "cargo-zigbuild",
+      "path": "crates/cargo-zigbuild",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "manylinux-cross",
+      "path": "manylinux-cross",
+      "kind": "container-images",
+      "targetCatalog": false
+    },
+    {
+      "name": "rust-musl-cross",
+      "path": "rust-musl-cross",
+      "kind": "container-images",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-hardware-db",
+      "path": "packages/yolo-hardware-db",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-hardware",
+      "path": "crates/yolo-hardware",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "android-native",
+      "path": "crates/android-native",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-capture",
+      "path": "crates/yolo-capture",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-process",
+      "path": "crates/yolo-process",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "bun-steam",
+      "path": "crates/bun-steam",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "bunos-nt-client",
+      "path": "crates/bunos-nt-client",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "bunos-nt-proto",
+      "path": "crates/bunos-nt-proto",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "bun-windows-winclean",
+      "path": "crates/bun-windows-winclean",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-wasm-raw",
+      "path": "crates/yolo-wasm-raw",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-wasm-bindgen-hello",
+      "path": "crates/yolo-wasm-bindgen-hello",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "yolo-wasm-wasi-hello",
+      "path": "crates/yolo-wasm-wasi-hello",
+      "kind": "cargo",
+      "targetCatalog": false
+    },
+    {
+      "name": "buncc",
+      "path": "packages/buncc",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "cross-plugins",
+      "path": "packages/cross-plugins",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "android-pipeline",
+      "path": "packages/android-pipeline",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "wasm",
+      "path": "packages/wasm",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "windows-interops",
+      "path": "packages/windows-interops",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "winclean",
+      "path": "packages/winclean",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "kernel-client",
+      "path": "packages/kernel-client",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "bun-dotnet-windows",
+      "path": "packages/bun-dotnet-windows",
+      "kind": "bun-package",
+      "targetCatalog": false
+    },
+    {
+      "name": "bun-android",
+      "path": "packages/bun-android",
+      "kind": "bun-package",
+      "targetCatalog": false
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@yolo/android-pipeline",
+  "version": "1.4.7",
+  "description": "Inspect Android package containers and plan source-based rebuilds for cross-compilation.",
+  "license": "MIT",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "check": "bun check --noEmit",
+    "typecheck": "bun check -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  }
+}

@@ -1,5 +1,5 @@
 [package]
-build = "src/build.rs"
+build = "crates/cross/src/build.rs"
 description = "Zero setup cross compilation and cross testing"
 documentation = "https://github.com/cross-rs/cross"
 keywords = ["cross", "compilation", "testing", "tool"]
@@ -9,7 +9,7 @@ repository = "https://github.com/cross-rs/cross"
 version = "0.2.5"
 edition = "2024"
 include = [
-  "src/**/*",
+  "crates/cross/src/**/*",
   "docs/*.md",
   "Cargo.toml",
   "Cargo.lock",
@@ -24,7 +24,23 @@ default = []
 dev = []
 
 [workspace]
-members = ["xtask"]
+members = [
+  "crates/xtask",
+  "crates/cargo-xwin",
+  "crates/cargo-zigbuild",
+  "crates/yolo-hardware",
+  "crates/android-native",
+  "crates/yolo-capture",
+  "crates/yolo-process",
+  "crates/bun-steam",
+  "crates/bunos-nt-client",
+  "crates/bunos-nt-proto",
+  "crates/bun-windows-winclean",
+  "crates/yolo-wasm-raw",
+  "crates/yolo-wasm-bindgen-hello",
+  "crates/yolo-wasm-wasi-hello",
+]
+resolver = "3"
 
 [dependencies]
 is-terminal = "0.4.2"
@@ -45,11 +61,23 @@ const-sha1 = "0.3"
 signal-hook = { version = "0.4" }
 directories = "6.0"
 walkdir = { version = "2.3.2", optional = true }
-tempfile = "=3.24.0"
+tempfile = "=3.25.0"
 owo-colors = { version = "4.2.2", features = ["supports-colors"] }
 semver = "1.0.26"
 is_ci = "1.2.0"
 glob = "0.3"
+yolo-hardware = { path = "crates/yolo-hardware" }
+
+[lib]
+path = "crates/cross/src/lib.rs"
+
+[[bin]]
+name = "cross"
+path = "crates/cross/src/bin/cross.rs"
+
+[[bin]]
+name = "cross-util"
+path = "crates/cross/src/bin/cross-util.rs"
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "0.30.1", default-features = false, features = ["user"] }
@@ -61,6 +89,10 @@ dunce = "1.0.5"
 
 [profile.release]
 lto = true
+
+[profile.dist]
+inherits = "release"
+lto = "thin"
 
 [dev-dependencies]
 regex = "1.11.2"

@@ -5,6 +5,47 @@
 
 # `cross`
 
+## YOLO Cross workspace
+
+This checkout is a Cargo-led cross-compilation workspace that combines the
+upstream `cross` CLI with `cargo-xwin`, `cargo-zigbuild`, platform support
+crates, and the Bun `buncc` compiler orchestration package. Cargo owns Rust
+builds; `Justfile` and the root Bun scripts provide a shared task interface.
+
+```powershell
+just list
+just check
+just targets
+```
+
+The workspace includes Windows MSVC/GNU, Linux GNU/musl, Android, and
+Emscripten target definitions. A target listed in the catalog does not prove
+that its SDK or toolchain is installed or that an artifact has been built.
+See [the target support matrix](docs/cross-targets.md),
+[development guide](DEVELOPMENT.md), and
+[migration status](docs/migration/bun-os.md) for the validated scope and
+current gaps. The `cross` CLI below remains the upstream cross-rs project; this
+workspace does not claim ownership of its upstream history.
+
+Windows/Linux target toolchains and MSVC host qualification live in
+[`yolo-cross`](docs/windows-toolchains.md). On Windows, run
+`bun run windows:chromium:doctor` to inspect the local Chromium/MSVC host
+prerequisites without modifying the machine.
+
+The Windows cross-build toolchain is maintained here. Invoke
+`bun run cross:windows -- doctor --workspace <consumer-workspace>` from this
+repository. `--workspace <path>` or `YOLO_CROSS_WORKSPACE` selects the consumer
+Cargo workspace; the old `BUNUI_WORKSPACE` remains a read-only fallback.
+`build --target-dir`, `bundle --out` and `installer --dist` keep generated
+artifacts caller-selectable. `YOLO_CROSS_*` variables are the public toolchain
+interface; matching `BUNUI_*` variables remain read-only compatibility
+fallbacks. Toolchain caches stay outside source checkouts.
+
+Bun Windows/MSVC build patches live in
+[`patches/bun`](patches/bun), with commit and SHA-256 pins. Run
+`bun run bun:patches` to inspect the queue. The checker requires a clean
+checkout at the pinned Bun revision before it can validate or apply a patch.
+
 > “Zero setup” cross compilation and “cross testing” of Rust crates
 
 This project is developed and maintained by the [cross-rs] team.

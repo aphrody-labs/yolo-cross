@@ -1,0 +1,124 @@
+{
+  "lockfileVersion": 2,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "rust-cross-workspace",
+      "devDependencies": {
+        "@types/bun": "catalog:",
+        "@types/node": "26.6.6",
+      },
+    },
+    "packages/android-pipeline": {
+      "name": "@yolo/android-pipeline",
+      "version": "1.4.7",
+      "devDependencies": {
+        "@types/bun": "catalog:",
+      },
+    },
+    "packages/bun-android": {
+      "name": "@yolo/bun-android",
+      "version": "1.4.7",
+      "bin": {
+        "bun-android": "./src/cli.ts",
+      },
+    },
+    "packages/bun-dotnet-windows": {
+      "name": "@yolo/bun-dotnet-windows",
+      "version": "1.4.7",
+      "dependencies": {
+        "@yolo/cross-plugins": "workspace:*",
+      },
+    },
+    "packages/buncc": {
+      "name": "@yolo/buncc",
+      "version": "1.4.7",
+      "bin": {
+        "buncc": "./src/cli.ts",
+      },
+    },
+    "packages/cross-plugins": {
+      "name": "@yolo/cross-plugins",
+      "version": "1.4.7",
+    },
+    "packages/kernel-client": {
+      "name": "@yolo/kernel-client",
+      "version": "1.4.7",
+    },
+    "packages/wasm": {
+      "name": "@yolo/wasm",
+      "version": "1.4.7",
+      "bin": {
+        "yolo-wasm": "./src/cli.ts",
+      },
+      "dependencies": {
+        "@yolo/cross-plugins": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:",
+      },
+    },
+    "packages/winclean": {
+      "name": "@yolo/winclean",
+      "version": "1.4.7",
+      "dependencies": {
+        "@yolo/kernel-client": "workspace:*",
+        "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+      },
+    },
+    "packages/windows-interops": {
+      "name": "@yolo/windows-interops",
+      "version": "1.4.7",
+      "dependencies": {
+        "@yolo/cross-plugins": "workspace:*",
+        "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+      },
+    },
+    "packages/yolo-hardware-db": {
+      "name": "yolo-hardware-db",
+      "version": "0.1.0",
+      "bin": {
+        "hw": "./src/cli.ts",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
+  },
+  "catalog": {
+    "@types/bun": "1.4.4",
+  },
+  "packages": {
+    "@types/bun": ["@types/bun@1.4.4", "", { "dependencies": { "bun-types": "1.4.4" } }, "sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ=="],
+
+    "@types/node": ["@types/node@26.6.6", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog=="],
+
+    "@yolo/android-pipeline": ["@yolo/android-pipeline@workspace:packages/android-pipeline"],
+
+    "@yolo/bun-android": ["@yolo/bun-android@workspace:packages/bun-android"],
+
+    "@yolo/bun-dotnet-windows": ["@yolo/bun-dotnet-windows@workspace:packages/bun-dotnet-windows"],
+
+    "@yolo/buncc": ["@yolo/buncc@workspace:packages/buncc"],
+
+    "@yolo/cross-plugins": ["@yolo/cross-plugins@workspace:packages/cross-plugins"],
+
+    "@yolo/kernel-client": ["@yolo/kernel-client@workspace:packages/kernel-client"],
+
+    "@yolo/wasm": ["@yolo/wasm@workspace:packages/wasm"],
+
+    "@yolo/winclean": ["@yolo/winclean@workspace:packages/winclean"],
+
+    "@yolo/windows-interops": ["@yolo/windows-interops@workspace:packages/windows-interops"],
+
+    "bun-types": ["bun-types@1.4.4", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-yjrJh5oGX7mMPKGd19YXyIjmEuj4G4zNC30bs7PM9Az7NQ3ndF3j6hbeRdvJTRQEhJ/FYQwW0a2moweEi2hMxQ=="],
+
+    "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
+
+    "yolo-hardware-db": ["yolo-hardware-db@workspace:packages/yolo-hardware-db"],
+
+    "@yolo/winclean/@yolo/windows": ["@yolo/windows@file:../yolo-bun/packages/windows", {}],
+
+    "@yolo/windows-interops/@yolo/windows": ["@yolo/windows@file:../yolo-bun/packages/windows", {}],
+  }
+}

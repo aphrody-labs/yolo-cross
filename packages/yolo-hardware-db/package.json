@@ -1,0 +1,36 @@
+{
+  "name": "yolo-hardware-db",
+  "version": "0.1.0",
+  "description": "Comprehensive real-time hardware telemetry and offline database for CPUs, GPUs, Drivers, PCI IDs, and USB IDs",
+  "type": "module",
+  "bin": {
+    "hw": "./src/cli.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "hw": "bun run src/cli.ts",
+    "sync": "bun run src/cli.ts sync",
+    "test": "bun test tests/"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "keywords": [
+    "hardware",
+    "cpu",
+    "gpu",
+    "driver",
+    "pci-ids",
+    "usb-ids",
+    "vulkan",
+    "telemetry",
+    "mesa",
+    "nvidia",
+    "amd",
+    "intel",
+    "arm",
+    "qualcomm",
+    "apple-silicon"
+  ]
+}
