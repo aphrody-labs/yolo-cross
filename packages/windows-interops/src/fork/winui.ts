@@ -3,7 +3,7 @@
 // Ported from aphrody-labs/bun src/js/bun/winui.ts (commit 62fcdb38ec9, MIT, Copyright Oven and contributors) to upstream Bun
 // for the Bun OS bun:* modules of @yolo/windows (src/bun-plugin.ts).
 // Relation to ../winui.ts: that module drives the .NET winui-host over JSON lines; this one is the fork API that
-// hosts XAML in the Bun process through ./winrt.ts.
+// hosts XAML in the Bun process through @yolo/windows/fork/winrt (yolo-bun/packages/windows/src/fork/winrt.ts).
 // bun:winui: WinUI 3 (Windows App SDK) driven from JavaScript.
 //
 // The Windows App Runtime framework package is added to the process package graph (Windows 11 dynamic
@@ -231,7 +231,7 @@ function bootstrap(options: any): Runtime {
 
 function loadCore(options: any) {
   if (options?.winrt) return options.winrt;
-  return require("./winrt").default;
+  return require("@yolo/windows/fork/winrt").default;
 }
 
 // XAML fragments without a default namespace get the WinUI ones, so `<Button Content="OK"/>` loads.
