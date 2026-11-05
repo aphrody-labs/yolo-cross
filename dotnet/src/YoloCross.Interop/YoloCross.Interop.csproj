@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Required for function pointers and fixed buffers used by interop. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Flag incompatible patterns at build time for the NativeAOT targets. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <AssemblyName>YoloCross.Interop</AssemblyName>
+    <RootNamespace>YoloCross.Interop</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The Rust cdylib (yolo_interop.dll / libyolo_interop.so) is placed next to the
+    consuming app by the RID-aware target in YoloCross.Cli.csproj, because a
+    framework-dependent library reference is built RID-agnostic and cannot know
+    the target OS here. The Rust side is built separately (cargo build /
+    cargo-zigbuild); see dotnet/README.md.
+  -->
+
+</Project>

@@ -1,0 +1,13 @@
+# .NET build output
+bin/
+obj/
+publish/
+artifacts/
+*.user
+
+# Rust build output for the bundled native crate
+# (root .gitignore already ignores **/target/, repeated here for clarity)
+native/**/target/
+
+# NativeAOT / publish artifacts are large; keep them out of git.
+*.pdb

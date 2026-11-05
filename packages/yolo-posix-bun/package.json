@@ -1,0 +1,25 @@
+{
+  "name": "yolo-posix-bun",
+  "version": "0.1.0",
+  "description": "Pure Bun v1.4.4+ TypeScript bridge exporting POSIX.1-2024 constants, errno, signals, and GNU extensions",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "bun test tests/"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "keywords": [
+    "posix",
+    "posix-2024",
+    "gnu",
+    "bun",
+    "signals",
+    "termios",
+    "errno",
+    "vfs",
+    "getopt-long"
+  ]
+}
