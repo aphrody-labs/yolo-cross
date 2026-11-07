@@ -7,6 +7,9 @@ pub mod codegen;
 pub mod crosstool;
 pub mod hooks;
 pub mod install_git_hooks;
+pub mod matrix;
+pub mod runner;
+pub mod script;
 pub mod target_info;
 pub mod util;
 
@@ -72,6 +75,12 @@ enum Commands {
     Changelog(Changelog),
     /// Code generation
     Codegen(Codegen),
+    /// Modern xshell command runner
+    Runner(runner::RunnerCmd),
+    /// Modern rust-script execution and management
+    Script(script::ScriptCmd),
+    /// Unified 2026 Linux/Windows 11/macOS target matrix
+    UnifiedMatrix(matrix::UnifiedMatrixCmd),
 }
 
 fn is_toolchain(toolchain: &str) -> cross::Result<String> {
@@ -120,6 +129,9 @@ pub fn main() -> cross::Result<()> {
             changelog::changelog(args, &mut msg_info)?;
         }
         Commands::Codegen(args) => codegen::codegen(args)?,
+        Commands::Runner(args) => args.run()?,
+        Commands::Script(args) => args.run()?,
+        Commands::UnifiedMatrix(args) => args.run()?,
     }
 
     Ok(())

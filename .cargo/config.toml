@@ -1,3 +1,9 @@
+[registries.crates-io]
+protocol = "sparse"
+
+[build]
+rustc-wrapper = "sccache"
+
 # If this project is cloned into another Rust project's subdirectory, and that
 # project defines its own aliases, string literals provide the best
 # compatibility because of Cargo's config merging rules:
@@ -5,3 +11,6 @@
 [alias]
 xtask = "run -p xtask --"
 build-docker-image = "xtask build-docker-image"
+runner = "run -p xtask -- runner"
+script = "run -p xtask -- script"
+unified-matrix = "run -p xtask -- unified-matrix"
