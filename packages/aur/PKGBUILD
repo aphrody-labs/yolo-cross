@@ -1,0 +1,39 @@
+# Maintainer: Aphrody Ecosystem Core Contributors <core@aphrody.com>
+pkgname=aphrody-bin
+pkgver=1.4.7
+pkgrel=1
+pkgdesc="Unified sovereign autonomous agent runtime, CLI, MCP server and fleet orchestrator (precompiled binary)"
+arch=('x86_64' 'aarch64')
+url="https://aphrody.com"
+license=('Apache-2.0')
+depends=('glibc' 'gcc-libs' 'ca-certificates')
+optdepends=(
+    'wireguard-tools: for private mesh tunnel connectivity'
+    'bun: for Upstream Bun JS/TS plugin runtime execution'
+)
+provides=('aphrody' 'yolo')
+conflicts=('aphrody' 'yolo-bin')
+
+source_x86_64=("https://cdn.aphrody.com/releases/v${pkgver}/aphrody-v${pkgver}-x86_64-unknown-linux-gnu.tar.gz")
+source_aarch64=("https://cdn.aphrody.com/releases/v${pkgver}/aphrody-v${pkgver}-aarch64-unknown-linux-gnu.tar.gz")
+
+sha256sums_x86_64=('4820470d05033fe428cae595a90199cf131ff2065fdc6b512e4bb0f5f961cf7d')
+sha256sums_aarch64=('4820470d05033fe428cae595a90199cf131ff2065fdc6b512e4bb0f5f961cf7d')
+
+package() {
+    cd "${srcdir}"
+    install -Dm755 aphrody "${pkgdir}/usr/bin/aphrody"
+    ln -sf aphrody "${pkgdir}/usr/bin/yolo"
+
+    # Shell autocompletions (generated via aphrody completions)
+    install -Dm644 completions/aphrody.bash "${pkgdir}/usr/share/bash-completion/completions/aphrody"
+    install -Dm644 completions/aphrody.zsh "${pkgdir}/usr/share/zsh/site-functions/_aphrody"
+    install -Dm644 completions/aphrody.fish "${pkgdir}/usr/share/fish/vendor_completions.d/aphrody.fish"
+
+    # Systemd service unit for daemon mode
+    install -Dm644 systemd/aphrody.service "${pkgdir}/usr/lib/systemd/user/aphrody.service"
+
+    # Documentation & License
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+}

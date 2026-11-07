@@ -1,0 +1,19 @@
+[Desktop Entry]
+Name=Aphrody
+Comment=Unified Sovereign Autonomous Agent Runtime, CLI & Dashboard
+Exec=aphrody
+Icon=com.aphrody.Aphrody
+Terminal=true
+Type=Application
+Categories=Development;System;Utility;
+Keywords=AI;Agent;MCP;Rust;Bun;YOLO;
+StartupNotify=true
+Actions=Dashboard;Doctor;
+
+[Desktop Action Dashboard]
+Name=Launch Unified Dashboard
+Exec=aphrody yolo dashboard --open
+
+[Desktop Action Doctor]
+Name=Run System Diagnostics
+Exec=aphrody doctor

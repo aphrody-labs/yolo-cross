@@ -1,0 +1,20 @@
+# Maintainer: YOLO-RS Core Foundation <foundation@yolo-rs.org>
+pkgname=yolo-bin
+pkgver=1.4.7
+pkgrel=1
+pkgdesc="Sovereign autonomous meta-platform and bleeding-edge standards ecosystem CLI"
+arch=('x86_64' 'aarch64')
+url="https://github.com/yolo-rs/yolo"
+license=('Apache-2.0')
+depends=('glibc' 'gcc-libs' 'ca-certificates')
+provides=('yolo')
+conflicts=('yolo')
+
+source_x86_64=("https://cdn.aphrody.com/releases/v${pkgver}/yolo-v${pkgver}-x86_64-unknown-linux-gnu.tar.gz")
+sha256sums_x86_64=('4820470d05033fe428cae595a90199cf131ff2065fdc6b512e4bb0f5f961cf7d')
+
+package() {
+    cd "${srcdir}"
+    install -Dm755 yolo "${pkgdir}/usr/bin/yolo"
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: YOLORS.YOLO
+PackageVersion: 1.4.7
+PackageLocale: en-US
+Publisher: YOLO-RS Core Foundation
+PublisherUrl: https://github.com/yolo-rs
+PublisherSupportUrl: https://github.com/yolo-rs/yolo/issues
+PrivacyUrl: https://aphrody.com/privacy
+Author: YOLO-RS Contributors
+PackageName: YOLO
+PackageUrl: https://github.com/yolo-rs/yolo
+License: Apache-2.0
+LicenseUrl: https://github.com/yolo-rs/yolo/blob/main/LICENSE
+Copyright: Copyright (c) 2026 YOLO-RS Foundation & Aphrody Labs
+ShortDescription: Sovereign autonomous meta-platform and high-speed polyglot execution engine.
+Description: |
+  YOLO CLI and execution runtime provides unified orchestration for Rust, Bun, Python,
+  and native web technologies with zero overhead and full local agent automation.
+Moniker: yolo
+Tags:
+  - cli
+  - developer-tools
+  - polyglot
+  - yolo
+  - rust
+  - bun
+ReleaseNotesUrl: https://github.com/yolo-rs/yolo/releases/tag/v1.4.7
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

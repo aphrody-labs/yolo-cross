@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: Aphrody.Aphrody
+PackageVersion: 1.4.7
+PackageLocale: en-US
+Publisher: Aphrody Labs
+PublisherUrl: https://aphrody.com
+PublisherSupportUrl: https://github.com/aphrody-labs/aphrody/issues
+PrivacyUrl: https://aphrody.com/privacy
+Author: Aphrody Ecosystem Core Contributors
+PackageName: Aphrody
+PackageUrl: https://aphrody.com
+License: Apache-2.0
+LicenseUrl: https://github.com/aphrody-labs/aphrody/blob/main/LICENSE
+Copyright: Copyright (c) 2026 Aphrody Labs
+ShortDescription: Unified autonomous polyglot agent runtime, CLI, MCP JSON-RPC server and orchestrator.
+Description: |
+  Aphrody is the sovereign, high-performance meta-platform binary integrating native CLI tools,
+  multi-agent orchestration, MCP JSON-RPC protocol servers, Rust bare-metal execution engines,
+  and seamless Cloudflare R2 / WireGuard fleet connectivity.
+Moniker: aphrody
+Tags:
+  - agent
+  - ai
+  - cli
+  - developer-tools
+  - mcp
+  - rust
+  - bun
+  - autonomous
+ReleaseNotesUrl: https://github.com/aphrody-labs/aphrody/releases/tag/v1.4.7
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

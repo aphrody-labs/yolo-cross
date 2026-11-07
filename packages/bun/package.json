@@ -1,0 +1,36 @@
+{
+  "name": "@aphrody/cli",
+  "version": "1.4.7",
+  "description": "Unified sovereign autonomous agent runtime, CLI, MCP JSON-RPC server and orchestrator",
+  "bin": {
+    "aphrody": "./bin/aphrody.js",
+    "yolo": "./bin/aphrody.js"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aphrody-labs/aphrody.git"
+  },
+  "keywords": [
+    "aphrody",
+    "yolo",
+    "agent",
+    "mcp",
+    "bun",
+    "rust",
+    "cli",
+    "autonomous"
+  ],
+  "author": "Aphrody Labs",
+  "license": "Apache-2.0",
+  "packageManager": "bun@1.4.4",
+  "sideEffects": false
+}

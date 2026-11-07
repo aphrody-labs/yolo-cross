@@ -1,0 +1,38 @@
+app-id: com.aphrody.Aphrody
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: aphrody
+finish-args:
+  # Network access for AI gateways, R2 buckets, WireGuard tunnels, and registries
+  - --share=network
+  - --share=ipc
+  # File system access for sovereign workspace operation
+  - --filesystem=host
+  - --filesystem=home
+  # Hardware acceleration
+  - --device=dri
+  # Environment & System bus
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - name: aphrody
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 aphrody /app/bin/aphrody
+      - ln -sf /app/bin/aphrody /app/bin/yolo
+      - install -Dm644 com.aphrody.Aphrody.desktop /app/share/applications/com.aphrody.Aphrody.desktop
+      - install -Dm644 com.aphrody.Aphrody.metainfo.xml /app/share/metainfo/com.aphrody.Aphrody.metainfo.xml
+      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/com.aphrody.Aphrody.png
+    sources:
+      - type: file
+        url: https://cdn.aphrody.com/releases/v1.4.7/aphrody-v1.4.7-x86_64-unknown-linux-gnu.tar.gz
+        sha256: 4820470d05033fe428cae595a90199cf131ff2065fdc6b512e4bb0f5f961cf7d
+        dest-filename: aphrody.tar.gz
+      - type: file
+        path: com.aphrody.Aphrody.desktop
+      - type: file
+        path: com.aphrody.Aphrody.metainfo.xml
+      - type: file
+        path: icon-256.png

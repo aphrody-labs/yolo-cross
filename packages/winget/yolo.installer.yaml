@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: YOLORS.YOLO
+PackageVersion: 1.4.7
+Platform:
+  - Windows.Desktop
+MinimumOSVersion: 10.0.19041.0
+InstallerType: portable
+InstallModes:
+  - silent
+  - silentWithProgress
+Commands:
+  - yolo
+  - aphrody
+Protocols:
+  - yolo
+  - aphrody
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://cdn.aphrody.com/releases/v1.4.7/yolo-v1.4.7-x86_64-pc-windows-msvc.exe
+    InstallerSha256: 34B8CC7999407F5384DFBA75B9A44EFB7F37BF3917FEF22C8BF074A6531BA805
+    Commands:
+      - yolo
+      - aphrody
+ManifestType: installer
+ManifestVersion: 1.6.0

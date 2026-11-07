@@ -1,0 +1,15 @@
+Package: aphrody
+Version: 1.4.7
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Aphrody Ecosystem Core Contributors <core@aphrody.com>
+Depends: libc6 (>= 2.31), libgcc-s1 (>= 4.2), ca-certificates
+Recommends: wireguard-tools
+Suggests: bun
+Homepage: https://aphrody.com
+Description: Unified sovereign autonomous agent runtime and orchestrator
+ Aphrody is a single high-performance native binary providing polyglot agent
+ orchestration, MCP JSON-RPC protocol server integration, native terminal
+ tools, and Cloudflare R2 / WireGuard mesh connectivity.
+ Contains both 'aphrody' and 'yolo' symlinked commands.
