@@ -8,7 +8,7 @@ _formerly cargo-xwinbuild_
 [![PyPI](https://img.shields.io/pypi/v/cargo-xwin.svg)](https://pypi.org/project/cargo-xwin)
 [![Docker Image](https://img.shields.io/docker/pulls/messense/cargo-xwin.svg?maxAge=2592000)](https://hub.docker.com/r/messense/cargo-xwin/)
 
-> 🚀 Help me to become a full-time open-source developer by [sponsoring me on GitHub](https://github.com/sponsors/messense)
+>  Help me to become a full-time open-source developer by [sponsoring me on GitHub](https://github.com/sponsors/messense)
 
 Cross compile Cargo project to Windows msvc target with ease using [xwin](https://github.com/Jake-Shadle/xwin) or [windows-msvc-sysroot](https://github.com/trcrsired/windows-msvc-sysroot).
 
