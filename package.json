@@ -17,7 +17,8 @@
     "packages/winclean",
     "packages/kernel-client",
     "packages/bun-dotnet-windows",
-    "packages/bun-android"
+    "packages/bun-android",
+    "packages/windows-samples-tests"
   ],
   "catalog": {
     "@types/bun": "1.4.4"

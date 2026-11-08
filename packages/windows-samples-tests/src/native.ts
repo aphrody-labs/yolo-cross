@@ -1,6 +1,6 @@
 /** Native build helpers: MSVC environment (entered through buncc) and cargo, both run without touching global state. */
-import { captureVcvars, findVisualStudio } from "@aphrody/buncc/msvc";
-import { readToolchain } from "@aphrody/buncc/rust";
+import { captureVcvars, findVisualStudio } from "../../buncc/src/providers/msvc.ts";
+import { readToolchain } from "../../buncc/src/providers/rust.ts";
 import { resolve } from "node:path";
 
 let cached: Record<string, string> | undefined;
