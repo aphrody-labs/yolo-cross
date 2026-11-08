@@ -1,2 +1,0 @@
-# Own clippy policy: stops the root clippy.toml (cross: Path::display ban) from applying to this member.
-allow-unwrap-in-tests = true

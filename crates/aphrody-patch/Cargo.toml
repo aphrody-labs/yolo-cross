@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+[package]
+workspace = "../.."
+name = "aphrody-patch"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+authors = ["aphrody-code"]
+repository = "https://github.com/aphrody-labs/bun-os/tree/main/crates/aphrody-patch"
+license = "Apache-2.0"
+description            = "LLM-native file-edit patch format (*** Begin Patch / Add|Update|Delete File / @@ context) with a parser, Unicode-tolerant fuzzy line seeking, a streaming parser, and application over a pluggable filesystem trait. Inspired by OpenAI Codex apply-patch (Apache-2.0)."
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+non_ascii_idents = "deny"
+
+[lints.clippy]
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+correctness = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+
+[dependencies]
+similar   = { workspace = true, features = ["text"] }
+thiserror = { workspace = true, features = ["std"] }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile          = { workspace = true }

@@ -1,0 +1,112 @@
+# SPDX-License-Identifier: Apache-2.0
+# Single Bun OS reverse-engineering core. Merges bun-re (aphrody-labs/aphrody re, Apache-2.0), the
+# DBXV2 game RE engine (Apache-2.0), the nie RE engine and minidump helpers
+# (aphrody-nie-re, aphrody-nie-dump). Steam installs, VDF, client configuration and depot acquisition
+# moved to the `bun-steam` crate; this crate keeps the SteamStub/DRM binary inspection.
+# The crates.io name `bun-re` is kept so `aphrody-re = { package = "bun-re" }` consumers resolve here
+# through [patch.crates-io] and keep their `aphrody_re::` paths.
+[package]
+name = "bun-re"
+version = "1.4.7"
+edition = "2024"
+rust-version = "1.97"
+license = "Apache-2.0"
+publish = true
+repository = "https://github.com/aphrody-labs/bun-os"
+description = "Reverse engineering core: PE/ELF/Mach-O triage, strings, x86-64 disassembly, ASAR/Electron/Go/Adobe/Android/SteamStub/minidump inspection, CPK/CRILAYLA archives, DBXV2 formats and catalog, AOB scanning, live memory and MSVC RTTI/call-graph recovery. Pure Rust."
+
+[lib]
+name = "bun_re"
+crate-type = ["rlib"]
+
+[lints]
+workspace = true
+
+[features]
+default = ["pipeline"]
+# Cross-OS/BIOS/firmware RE pipeline (stage contract, adapters, lift/emit). Dependency-light: no extra crates.
+pipeline = []
+magika = ["dep:magika"]
+leveldb = ["dep:rusty-leveldb", "dep:tempfile"]
+yara = ["dep:yara-x"]
+# CPK triage and CRILAYLA bindings run over the canonical `aphrody-nie-formats` CRI readers.
+wasm = ["dep:wasm-bindgen", "dep:js-sys", "dep:serde-wasm-bindgen", "dep:aphrody-nie-formats", "aphrody-nie-formats/serde"]
+# nie RE engine: SQLite indexing, MSVC RTTI/vtable recovery, call-graph disassembly and labelling.
+nie = ["dep:aphrody-nie-index", "dep:anyhow", "dep:tracing"]
+# Game-agnostic asset pipeline of `bunre game` (`game::assets`): engine detection, profiles,
+# CPK/Unreal pak/IoStore/UnityFS/Godot/Ren'Py/ZIP mounting and open-format export. CRI and Level-5
+# formats come from the canonical aphrody-nie-formats readers; IEVR mounts through its owner.
+assets = [
+    "dep:aphrody-nie-formats",
+    "aphrody-nie-formats/std",
+    "aphrody-nie-formats/textures",
+    "aphrody-nie-formats/audio-decode",
+    "aphrody-nie-formats/serde",
+    "dep:cridecoder",
+    "dep:lz4_flex",
+]
+# DBXV2 extraction and conversion passes of `bunre dbxv2` (streaming CPK extraction, DDS -> PNG,
+# CRI audio -> WAV, SQLite/FTS5 asset index) over the canonical aphrody-nie-formats readers.
+dbxv2 = ["assets", "dep:rusqlite"]
+# In-process decompilation through the Rust Ghidra decompiler (PE, ELF, Mach-O).
+decompile = ["dep:ghidra-decompiler"]
+
+[dependencies]
+bun-steam = { workspace = true }
+ghidra-decompiler = { workspace = true, optional = true }
+goblin     = { version = "0.10", default-features = false, features = ["std", "endian_fd", "pe32", "pe64", "elf32", "elf64"] }
+sha2       = "0.11.0"
+md-5       = "0.11.0"
+sha1       = "0.11.0"
+aes        = "0.9.3"
+flate2     = "1.1.10"
+# Pure-Rust xz decoder for the DBXV2 asset tree (.xz files); also used by the wasm build.
+lzma-rs    = "0.3"
+crc32fast  = { version = "1.5", default-features = false }
+hex        = "0.4"
+serde      = { version = "1.0.228", default-features = false, features = ["derive", "std"] }
+serde_json = "1.0.150"
+thiserror  = "2.0.20"
+iced-x86   = "1.21"
+memchr     = "2"
+regex      = "1.11"
+zerocopy   = { version = "0.8", features = ["derive"] }
+magika     = { version = "1.1.0", optional = true }
+rusty-leveldb = { version = "4", optional = true, default-features = false, features = ["fs"] }
+tempfile   = { version = "3.27.0", optional = true }
+walkdir    = "2.5.0"
+wasm-bindgen = { workspace = true, optional = true }
+js-sys     = { workspace = true, optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+hashbrown  = { version = "0.17", default-features = false, features = ["default-hasher", "inline-more"] }
+yara-x     = { version = "1.7.0", optional = true, default-features = false }
+aphrody-nie-index = { workspace = true, optional = true, default-features = true }
+aphrody-nie-formats = { workspace = true, optional = true }
+cridecoder = { workspace = true, optional = true }
+lz4_flex   = { workspace = true, optional = true }
+rusqlite   = { workspace = true, optional = true, features = ["bundled"] }
+anyhow     = { workspace = true, optional = true }
+tracing    = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = "1.0.150"
+tempfile   = "3.27.0"
+googletest = "0.14"
+criterion  = { version = "0.8.2", features = ["html_reports"] }
+
+[[bin]]
+name = "bunre"
+path = "src/bin/bunre/main.rs"
+
+[[example]]
+name = "dump_census"
+
+[[example]]
+name = "dump_scan"
+
+[[bench]]
+name    = "triage"
+harness = false
+
+[package.metadata.cargo-machete]
+ignored = ["magika", "yara-x"]

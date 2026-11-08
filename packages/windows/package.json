@@ -29,7 +29,9 @@
     "./bun-plugin": "./src/bun-plugin.ts",
     "./fork/windows": "./src/fork/windows.ts",
     "./fork/winrt": "./src/fork/winrt.ts",
-    "./fork/winui": "./src/fork/winui.ts"
+    "./fork/winui": "./src/fork/winui.ts",
+    "./errors": "./src/errors.ts",
+    "./ffi": "./src/ffi.ts"
   },
   "scripts": {
     "build:napi": "bun src/provider.ts build",

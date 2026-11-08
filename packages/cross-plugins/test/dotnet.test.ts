@@ -71,7 +71,10 @@ describe.skipIf(installed === null)("with an installed .NET", () => {
     expect(dotnet.env()).toBe(snapshot);
     const dir = mkdtempSync(join(tmpdir(), "bun-dotnet-resolve-"));
     const config = join(dir, "app.runtimeconfig.json");
-    const major = location.runtimes.at(-1)!.split(".")[0];
+    // Pick the highest non-prerelease GA runtime for deterministic resolution
+    const gaRuntimes = location.runtimes.filter((r) => !r.includes("-"));
+    const targetRuntime = gaRuntimes.at(-1) ?? location.runtimes.at(-1)!;
+    const major = targetRuntime.split(".")[0];
     writeFileSync(
       config,
       JSON.stringify({

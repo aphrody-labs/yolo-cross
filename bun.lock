@@ -66,6 +66,13 @@
         "@yolo/windows": "file:../../../yolo-bun/packages/windows",
       },
     },
+    "packages/windows": {
+      "name": "@yolo/windows",
+      "version": "1.4.7",
+      "dependencies": {
+        "@yolo/cross-plugins": "workspace:*",
+      },
+    },
     "packages/windows-interops": {
       "name": "@yolo/windows-interops",
       "version": "1.4.7",
@@ -108,6 +115,8 @@
     "@yolo/wasm": ["@yolo/wasm@workspace:packages/wasm"],
 
     "@yolo/winclean": ["@yolo/winclean@workspace:packages/winclean"],
+
+    "@yolo/windows": ["@yolo/windows@workspace:packages/windows"],
 
     "@yolo/windows-interops": ["@yolo/windows-interops@workspace:packages/windows-interops"],
 
