@@ -4,6 +4,7 @@
 # Linux root workspace gate.
 [package]
 name = "bunos-nt-client"
+publish = false
 version = "1.4.7"
 edition = "2024"
 license = "Apache-2.0"

@@ -5,6 +5,7 @@ documentation = "https://github.com/cross-rs/cross"
 keywords = ["cross", "compilation", "testing", "tool"]
 license = "MIT OR Apache-2.0"
 name = "cross"
+publish = false
 repository = "https://github.com/cross-rs/cross"
 homepage = "https://aphrody.com"
 version = "0.2.5"

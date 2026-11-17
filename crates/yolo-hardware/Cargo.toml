@@ -1,5 +1,6 @@
 [package]
 name = "yolo-hardware"
+publish = false
 version = "0.1.0"
 edition = "2024"
 description = "Rust data structures for CPU, GPU, Linux, and virtualization specifications"

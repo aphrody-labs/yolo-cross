@@ -1,5 +1,6 @@
 [package]
 name = "cargo-zigbuild"
+publish = false
 version = "0.24.1"
 edition = "2024"
 authors = ["messense <messense@icloud.com>"]
