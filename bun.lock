@@ -63,7 +63,7 @@
       "version": "1.4.7",
       "dependencies": {
         "@yolo/kernel-client": "workspace:*",
-        "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+        "@yolo/windows": "workspace:*",
       },
     },
     "packages/windows": {
@@ -78,8 +78,12 @@
       "version": "1.4.7",
       "dependencies": {
         "@yolo/cross-plugins": "workspace:*",
-        "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+        "@yolo/windows": "workspace:*",
       },
+    },
+    "packages/windows-samples-tests": {
+      "name": "@aphrody/windows-samples-tests",
+      "version": "1.4.7",
     },
     "packages/yolo-hardware-db": {
       "name": "yolo-hardware-db",
@@ -96,6 +100,8 @@
     "@types/bun": "1.4.4",
   },
   "packages": {
+    "@aphrody/windows-samples-tests": ["@aphrody/windows-samples-tests@workspace:packages/windows-samples-tests"],
+
     "@types/bun": ["@types/bun@1.4.4", "", { "dependencies": { "bun-types": "1.4.4" } }, "sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ=="],
 
     "@types/node": ["@types/node@26.6.6", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog=="],
@@ -125,9 +131,5 @@
     "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "yolo-hardware-db": ["yolo-hardware-db@workspace:packages/yolo-hardware-db"],
-
-    "@yolo/winclean/@yolo/windows": ["@yolo/windows@file:../yolo-bun/packages/windows", {}],
-
-    "@yolo/windows-interops/@yolo/windows": ["@yolo/windows@file:../yolo-bun/packages/windows", {}],
   }
 }

@@ -28,7 +28,7 @@
     "typecheck": "bun check --no-script --project tsconfig.json"
   },
   "dependencies": {
-    "@yolo/windows": "file:../../../yolo-bun/packages/windows",
+    "@yolo/windows": "workspace:*",
     "@yolo/cross-plugins": "workspace:*"
   },
   "engines": {

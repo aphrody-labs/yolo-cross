@@ -8,7 +8,13 @@ if (args.some((arg) => arg !== "--execute") || args.length > 1) {
   console.error("Usage: bun scripts/fleet-build-vps.ts [--execute]");
   process.exit(2);
 }
-const source = resolve(import.meta.dir, "../../yolo-vps");
+// Optional lane: the yolo-vps checkout is named by YOLO_CROSS_VPS_SRC; without it the lane is skipped.
+const vpsSource = process.env.YOLO_CROSS_VPS_SRC;
+if (!vpsSource) {
+  console.log("Lane: vps skipped (set YOLO_CROSS_VPS_SRC to a yolo-vps checkout)");
+  process.exit(0);
+}
+const source = resolve(vpsSource);
 const sourcePaths = Array.from(new Bun.Glob("src/**/*.rs").scanSync({ cwd: source, onlyFiles: true }), (path) => path.replaceAll("\\", "/")).sort();
 if (!sourcePaths.includes("src/main.rs")) throw new Error("yolo-vps src/main.rs missing");
 const paths = ["Cargo.toml", "Cargo.lock", ...sourcePaths];
