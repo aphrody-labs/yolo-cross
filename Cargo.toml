@@ -100,7 +100,7 @@ aphrody-oxc-bridge = { version = "0.2.0" }
 aphrody-llama-server = { path = "crates/aphrody-llama-server", version = "1.4.7", features = [] }
 aphrody-model-client = { path = "crates/aphrody-model-client", version = "1.4.7", features = [] }
 aphrody-models = { path = "crates/aphrody-models", version = "1.4.7", features = [] }
-aphrody-rag-core = { path = "crates/aphrody-rag-core", version = "1.4.7", features = [] }
+aphrody-rag-core = { version = "1.4.7", features = [] }
 rookie-cookies = { version = "0.6.0" }
 yolo-runtime = { path = "crates/yolo-runtime", version = "1.4.7" }
 bun-python-host = { version = "0.1.0" }
