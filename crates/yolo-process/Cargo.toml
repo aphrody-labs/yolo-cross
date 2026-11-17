@@ -49,4 +49,4 @@ tokio = ["dep:tokio"]
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
-tempfile = "=3.25.0"
+tempfile = "3.27.0"
